@@ -1,0 +1,205 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 06.01.2021 07:53:56
+
+newmtl MAT_FLOORTILE1
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka FloorSeg01_MAT_FLOORTILE1_BaseMap.png
+	map_Kd FloorSeg01_MAT_FLOORTILE1_BaseMap.png
+	map_Ks FloorSeg01_MAT_FLOORTILE1_MaskMap.png
+	map_bump FloorSeg01_MAT_FLOORTILE1_Normal.png
+	bump FloorSeg01_MAT_FLOORTILE1_Normal.png
+
+newmtl MAT_PILLAR
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Pillar_MAT_PILLAR_BaseMap.png
+	map_Kd Pillar_MAT_PILLAR_BaseMap.png
+	map_Ks Pillar_MAT_PILLAR_MaskMap.png
+	map_bump Pillar_MAT_PILLAR_Normal.png
+	bump Pillar_MAT_PILLAR_Normal.png
+
+newmtl MAT_PADDING
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Pillar_MAT_PADDING_BaseMap.png
+	map_Kd Pillar_MAT_PADDING_BaseMap.png
+	map_Ks Pillar_MAT_PADDING_MaskMap.png
+	map_bump Pillar_MAT_PADDING_Normal.png
+	bump Pillar_MAT_PADDING_Normal.png
+
+newmtl MAT_SCREEN
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Screen_MAT_SCREEN_BaseMap.png
+	map_Kd Screen_MAT_SCREEN_BaseMap.png
+	map_Ks Screen_MAT_SCREEN_MaskMap.png
+	map_bump Screen_MAT_SCREEN_Normal.png
+	bump Screen_MAT_SCREEN_Normal.png
+
+newmtl MAT_CEILING
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka CeilSeg01_MAT_CEILING_BaseMap.png
+	map_Kd CeilSeg01_MAT_CEILING_BaseMap.png
+	map_Ks CeilSeg01_MAT_CEILING_MaskMap.png
+	map_bump CeilSeg01_MAT_CEILING_Normal.png
+	bump CeilSeg01_MAT_CEILING_Normal.png
+
+newmtl MAT_CEILING_DETAILS
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka CeilSeg01_MAT_CEILING_DETAILS_BaseMap.png
+	map_Kd CeilSeg01_MAT_CEILING_DETAILS_BaseMap.png
+	map_Ks CeilSeg01_MAT_CEILING_DETAILS_MaskMap.png
+	map_bump CeilSeg01_MAT_CEILING_DETAILS_Normal.png
+	bump CeilSeg01_MAT_CEILING_DETAILS_Normal.png
+
+newmtl MAT_DOOR01
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Door01_MAT_DOOR01_BaseMap.png
+	map_Kd Door01_MAT_DOOR01_BaseMap.png
+	map_Ks Door01_MAT_DOOR01_MaskMap.png
+	map_bump Door01_MAT_DOOR01_Normal.png
+	bump Door01_MAT_DOOR01_Normal.png
+
+newmtl MAT_DOORWAY01
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Doorway01_MAT_DOORWAY01_BaseMap.png
+	map_Kd Doorway01_MAT_DOORWAY01_BaseMap.png
+	map_Ks Doorway01_MAT_DOORWAY01_MaskMap.png
+	map_bump Doorway01_MAT_DOORWAY01_Normal.png
+	bump Doorway01_MAT_DOORWAY01_Normal.png
+
+newmtl MAT_STORAGE
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Storage_MAT_STORAGE_BaseMap.png
+	map_Kd Storage_MAT_STORAGE_BaseMap.png
+	map_Ks Storage_MAT_STORAGE_MaskMap.png
+	map_bump Storage_MAT_STORAGE_Normal.png
+	bump Storage_MAT_STORAGE_Normal.png
+
+newmtl MAT_CANISTER
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Canister_MAT_CANISTER_BaseMap.png
+	map_Kd Canister_MAT_CANISTER_BaseMap.png
+	map_bump Canister_MAT_CANISTER_Normal.png
+	bump Canister_MAT_CANISTER_Normal.png
+
+newmtl HOSES
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Hoses_HOSES_BaseMap.png
+	map_Kd Hoses_HOSES_BaseMap.png
+	map_Ks Hoses_HOSES_MaskMap.png
+	map_bump Hoses_HOSES_Normal.png
+	bump Hoses_HOSES_Normal.png
+
+newmtl MAT_WALLSEG01
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka WallSeg01_MAT_WALLSEG01_BaseMap.png
+	map_Kd WallSeg01_MAT_WALLSEG01_BaseMap.png
+	map_Ks WallSeg01_MAT_WALLSEG01_MaskMap.png
+	map_bump WallSeg01_MAT_WALLSEG01_Normal.png
+	bump WallSeg01_MAT_WALLSEG01_Normal.png

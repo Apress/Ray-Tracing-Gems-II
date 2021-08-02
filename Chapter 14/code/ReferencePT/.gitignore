@@ -1,0 +1,9 @@
+/.vs/*
+/intermediate/*
+/bin/ReferencePT.iobj
+/bin/ReferencePT.ipdb
+/bin/ReferencePT.pdb
+/bin/ReferencePT_d.exe
+/bin/ReferencePT_d.ilk
+/bin/ReferencePT_d.pdb
+imgui.ini

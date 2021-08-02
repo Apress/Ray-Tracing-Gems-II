@@ -1,0 +1,51 @@
+stages:
+  - build
+
+build-ubuntu18-release:
+  stage: build
+  tags:
+    - ubuntu18-optix
+  script:
+    - mkdir bin_release
+    - cd bin_release
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - cmake -DCMAKE_BUILD_TYPE=Release -DOptiX_INSTALL_DIR=/usr/local/NVIDIA-OptiX-SDK-7.0.0-linux64 -DOWL_BUILD_SAMPLES=ON -DOWL_BUILD_ADVANCED_TESTS=ON ..
+    - make
+    - make test
+
+build-ubuntu18-debug:
+  stage: build
+  tags:
+    - ubuntu18-optix
+  script:
+    - mkdir bin_debug
+    - cd bin_debug
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DOptiX_INSTALL_DIR=/usr/local/NVIDIA-OptiX-SDK-7.0.0-linux64 -DOWL_BUILD_SAMPLES=ON -DOWL_BUILD_ADVANCED_TESTS=ON ..
+    - make
+    - make test
+
+build-centos7-release:
+  stage: build
+  tags:
+    - centos7-optix
+  script:
+    - mkdir bin_release
+    - cd bin_release
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - cmake3 -DCMAKE_BUILD_TYPE=Release -DOptiX_INSTALL_DIR=/usr/local/NVIDIA-OptiX-SDK-7.0.0-linux64 -DOWL_BUILD_SAMPLES=ON -DOWL_BUILD_ADVANCED_TESTS=ON ..
+    - make
+    - make test
+
+build-centos7-debug:
+  stage: build
+  tags:
+    - centos7-optix
+  script:
+    - mkdir bin_debug
+    - cd bin_debug
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - cmake3 -DCMAKE_BUILD_TYPE=Debug -DOptiX_INSTALL_DIR=/usr/local/NVIDIA-OptiX-SDK-7.0.0-linux64 -DOWL_BUILD_SAMPLES=ON -DOWL_BUILD_ADVANCED_TESTS=ON ..
+    - make
+    - make test
+

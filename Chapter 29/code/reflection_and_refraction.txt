@@ -1,0 +1,41 @@
+// Code for the article "Reflection and Refraction Formulas," Ray Tracing Gems 2
+//
+// Reflection and refraction pseudocode, ready to move to your favorite vector format.
+
+// Reflection
+//
+// I is the incoming ray direction, which does not have to be normalized. N is the
+// normalized surface normal vector, which can point in either direction (e.g., up or
+// down) from the surface. R is the unnormalized reflection vector returned. Note if
+// I is normalized, R will also be normalized.
+
+void ReflectionDirection(Vector I, Vector N, Vector & R)
+{
+    R = I - 2*VecDot(I,N)*N;
+}
+
+
+// Refraction
+//
+// n1 is the index of refraction of the medium the ray is moving through, n2 the
+// index of refraction of the medium it is moving into. I is the incoming ray direction,
+// which must be normalized before calling this code. N is the normalized surface normal
+// vector that can point in either direction from the surface, and T is the resulting,
+// normalized refraction direction, returned. "true" is returned if the refraction ray
+// direction is computed, "false" if total internal refraction occurs.
+//
+// Modified from Xavier Bec, "Faster Refraction Formula, and Transmission Color Filtering,"
+// Ray Tracing News 10(1), http://www.raytracingnews.org/rtnv10n1.html
+
+bool TransmissionDirection(float n1, float n2,
+        Vector I, Vector N, Vector & T)
+{
+    float eta = n1/n2;              /* relative index of refraction */
+    float c1 = -VecDot(I, N);       /* cos(theta1) */
+    float w = eta*c1;
+    float c2m = (w-eta)*(w+eta);    /* cos^2(theta2) - 1 */
+    if (c2m < -1.0f)
+        return false;               /* total internal reflection */
+    T = eta*I + (w-sqrt(1.0f+c2m))*N;
+    return true;
+}

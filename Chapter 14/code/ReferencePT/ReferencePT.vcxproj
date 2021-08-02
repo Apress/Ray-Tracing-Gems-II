@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\GLTF.cpp" />
+    <ClCompile Include="src\Graphics.cpp" />
+    <ClCompile Include="src\Gui.cpp" />
+    <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Textures.cpp" />
+    <ClCompile Include="src\thirdparty\directxtk\Keyboard.cpp" />
+    <ClCompile Include="src\thirdparty\directxtk\Mouse.cpp" />
+    <ClCompile Include="src\thirdparty\directxtk\ScreenGrab12.cpp" />
+    <ClCompile Include="src\thirdparty\imgui\imgui.cpp" />
+    <ClCompile Include="src\thirdparty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\thirdparty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\thirdparty\imgui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="src\thirdparty\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="src\thirdparty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
+    <ClCompile Include="src\Window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\PathTracer.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Common.h" />
+    <ClInclude Include="include\GLTF.h" />
+    <ClInclude Include="include\Graphics.h" />
+    <ClInclude Include="include\Gui.h" />
+    <ClInclude Include="include\Input.h" />
+    <ClInclude Include="include\Scene.h" />
+    <ClInclude Include="include\Structures.h" />
+    <ClInclude Include="include\Textures.h" />
+    <ClInclude Include="include\thirdparty\d3dx12\d3dx12.h" />
+    <ClInclude Include="include\thirdparty\directxtex\DirectXTex.h" />
+    <ClInclude Include="include\thirdparty\directxtk\Keyboard.h" />
+    <ClInclude Include="include\thirdparty\directxtk\Mouse.h" />
+    <ClInclude Include="include\thirdparty\directxtk\platformhelpers.h" />
+    <ClInclude Include="include\thirdparty\directxtk\ScreenGrab12.h" />
+    <ClInclude Include="include\thirdparty\dxc\dxcapi.h" />
+    <ClInclude Include="include\thirdparty\dxc\dxcapi.use.h" />
+    <ClInclude Include="include\thirdparty\imgui\imconfig.h" />
+    <ClInclude Include="include\thirdparty\imgui\imgui.h" />
+    <ClInclude Include="include\thirdparty\imgui\imgui_impl_dx12.h" />
+    <ClInclude Include="include\thirdparty\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="include\thirdparty\imgui\imgui_internal.h" />
+    <ClInclude Include="include\thirdparty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="include\thirdparty\imgui\imstb_textedit.h" />
+    <ClInclude Include="include\thirdparty\imgui\imstb_truetype.h" />
+    <ClInclude Include="include\thirdparty\stb\stb_image.h" />
+    <ClInclude Include="include\thirdparty\tinygltf\json.hpp" />
+    <ClInclude Include="include\thirdparty\tinygltf\tiny_gltf.h" />
+    <ClInclude Include="include\Utils.h" />
+    <ClInclude Include="include\Window.h" />
+    <ClInclude Include="shaders\brdf.h">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="shaders\shared.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\thirdparty\directxtex\DirectXTex.inl" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{18e80301-0be6-45c6-9e7e-6505dc098dc7}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>HelloTriangle</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <ProjectName>ReferencePT</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>bin\</OutDir>
+    <IntDir>intermediate\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+    <IncludePath>$(ProjectDir)Include\thirdparty\imgui;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>bin\</OutDir>
+    <IntDir>intermediate\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)Include\thirdparty\imgui;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>include;include\thirdparty;include\thirdparty\dxc</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>bin\$(ProjectName)_d.exe</OutputFile>
+      <AdditionalLibraryDirectories>lib\x64;lib\x64\DXRT;C:\DirectXTK\lib\x64</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>include;include\thirdparty;include\thirdparty\dxc</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>bin\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>lib\x64;lib\x64\DXRT;C:\DirectXTK\lib\x64</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,89 @@
+   + Application ...
+        + Decals ...
+             Show Boxes:  off
+        + Lighting ...
+             Ambient Intensity:  0.015389
+             Sun Inclination:  0.750000
+             Sun Light Intensity:  1.000000
+             Sun Orientation:  -0.500000
+   Display Frame Rate:  on
+   Display Profiler:  off
+   + Graphics ...
+        + AA ...
+             + FXAA ...
+                  Always Recompute Log-Luma:  off
+                  Contrast Threshold:  0.175000
+                  Debug:  off
+                  Enable:  on
+                  Subpixel Removal:  0.500000
+             + TAA ...
+                  Blend Factor:  1.000000
+                  Enable:  off
+                  Reset:  off
+                  Sharpness:  0.500000
+                  Speed Limit:  64.000000
+        + Bloom ...
+             Enable:  off
+             High Quality:  on
+             Scatter:  0.650000
+             Strength:  0.100000
+             Threshold:  4.000000
+        + Depth of Field ...
+             AntiSparkle:  1.000000
+             Debug Mode:  Off
+             Debug Tiles:  off
+             Enable:  off
+             FG Range:  100.000000
+             Focal Center:  0.100000
+             Focal Radius:  0.100000
+             Force Fast Path:  off
+             Force Slow Path:  off
+             Median Alpha:  off
+             Median Filter:  on
+             PreFilter:  on
+        + Display ...
+             Bicubic Filter Weight:  -0.750000
+             HDR Debug Mode:  HDR
+             Magnify Pixels:  Off
+             Native Resolution:  1280x720
+             Paper White (nits):  200.000000
+             Peak Brightness (nits):  1000.000000
+             Sharpness Sample Rotation:  45.000000
+             Sharpness Sample Spread:  1.000000
+             Sharpness Strength:  0.100000
+             Upsample Filter:  Sharpening
+        + HDR ...
+             Adaptation Rate:  0.050000
+             Adaptive Exposure:  off
+             Draw Histogram:  off
+             Enable:  on
+             Exposure:  10.000000
+             Key:  0.080000
+             Max Exposure:  64.000000
+             Min Exposure:  0.015625
+        + Motion Blur ...
+             Enable:  off
+        + Particle Effects ...
+             Dynamic Resolution Cutoff:  0.000000
+             Enable:  on
+             Mip Bias:  0.000000
+             Pause Simulation:  off
+             Sort Sprites:  on
+             Tiled Rendering:  on
+             Tiled Sample Rate:  Dynamic
+        + SSAO ...
+             Accentuation:  0.100000
+             Always Linearize Z:  on
+             Async Compute:  off
+             Blur Tolerance (log10):  -5.000000
+             Debug Draw:  off
+             Enable:  on
+             Hierarchy Depth:  3
+             Noise Filter Threshold (log10):  -3.000000
+             Quality Level:  High
+             Rejection Falloff (rcp):  2.500000
+             Upsample Tolerance (log10):  -7.000000
+   + Timing ...
+        Drop Random Frames:  off
+        Limit To 30Hz:  off
+        VSync:  off

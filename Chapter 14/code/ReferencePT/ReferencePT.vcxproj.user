@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>-width 1920 -height 1080 -vsync 0 -scene ".\models\cornell_box\cornell_box.gltf"</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <RemoteDebuggerCommandArguments>-width 1920 -height 1080 -vsync 0 -scene ".\models\cornell_box\cornell_box.gltf"</RemoteDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>-width 1920 -height 1080 -vsync 0 -scene ".\models\bathroom\LAZIENKA.gltf"</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <RemoteDebuggerCommandArguments>-width 1920 -height 1080 -vsync 0 -scene  ".\models\bathroom\LAZIENKA.gltf"</RemoteDebuggerCommandArguments>
+  </PropertyGroup>
+</Project>

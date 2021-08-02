@@ -1,0 +1,7 @@
+﻿obj
+bin
+.vs
+*.cso
+*.user
+packages
+Build_VS16

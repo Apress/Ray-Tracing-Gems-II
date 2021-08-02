@@ -1,0 +1,6 @@
+*.spv
+cmake_build/*
+scenes/*
+autogen/*
+bin_*
+downloaded_resources/*

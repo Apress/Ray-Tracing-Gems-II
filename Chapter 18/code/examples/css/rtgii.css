@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: "Roboto", 'Lucida Sans Unicode', "Helvetica Neue", Arial, "Opens Sans", sans-serif;
+  --canvas-width: 512px;
+  --canvas-height: 512px;  
+  --canvas-width: 1024px;
+  --canvas-height: 768px;
+}
+
+@media screen and (max-width: 840px) {
+  body {
+    --canvas-width: 1024px;
+    --canvas-height: 768px;	
+    --canvas-width: 512px;
+    --canvas-height: 384px;
+  }
+}
+
+@media screen and (max-width: 340px) { 
+  body {
+    --canvas-width: 1024px;
+    --canvas-height: 768px;
+    --canvas-width: 256px;
+    --canvas-height: 192px;
+  }
+}
+
+#webrays-main {
+  text-align:center;
+}
+
+#webrays-main-canvas {
+  border: 2px solid black;
+  width: var(--canvas-width);
+  height: var(--canvas-height);
+  z-index: 1;
+}

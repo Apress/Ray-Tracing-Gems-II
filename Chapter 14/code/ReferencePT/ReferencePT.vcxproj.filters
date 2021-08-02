@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{b6bf48b5-5b3d-4b2a-98c7-63450b6f7ac1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{1d9859fa-b088-4b58-99dc-8eca318d73b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{9dbee71b-9a2f-4b36-99bc-b3c7d6e27896}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty">
+      <UniqueIdentifier>{972530fc-521c-4b6b-8a0e-6d691ab12fe4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\dxc">
+      <UniqueIdentifier>{ae5fb25b-e0ab-40f7-bca4-c07f9f1f09d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\thirdparty">
+      <UniqueIdentifier>{ec0df1e5-783a-4191-b060-2032fcb0017e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\thirdparty\imgui">
+      <UniqueIdentifier>{f17ea880-d4d6-4641-a9c2-bfd1e7ef75e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\imgui">
+      <UniqueIdentifier>{3f347269-3aaf-45e0-9773-11a2bdd7a932}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\thirdparty\directxtk">
+      <UniqueIdentifier>{ce4337b7-0452-4994-b5af-36d65548b111}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\directxtk">
+      <UniqueIdentifier>{a75b1608-599e-4da6-9c32-22c17f1fab6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\tinygltf">
+      <UniqueIdentifier>{d2b6ced1-080f-4999-a2d9-4aad63be32e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\d3dx12">
+      <UniqueIdentifier>{fa8cfbea-b813-4f58-b7fe-015e445603e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\directxtex">
+      <UniqueIdentifier>{0b792694-d0fc-4160-bb76-1019a3808a19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\thirdparty\stb">
+      <UniqueIdentifier>{3fb9f3a4-e68a-4179-9a9e-c00d74ff8284}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Gui.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\imgui\imgui.cpp">
+      <Filter>Source\thirdparty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\imgui\imgui_demo.cpp">
+      <Filter>Source\thirdparty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\imgui\imgui_impl_dx12.cpp">
+      <Filter>Source\thirdparty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\imgui\imgui_impl_win32.cpp">
+      <Filter>Source\thirdparty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\imgui\imgui_widgets.cpp">
+      <Filter>Source\thirdparty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\imgui\imgui_draw.cpp">
+      <Filter>Source\thirdparty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLTF.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\directxtk\Keyboard.cpp">
+      <Filter>Source\thirdparty\directxtk</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\directxtk\Mouse.cpp">
+      <Filter>Source\thirdparty\directxtk</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Textures.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thirdparty\directxtk\ScreenGrab12.cpp">
+      <Filter>Source\thirdparty\directxtk</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\PathTracer.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Window.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\dxc\dxcapi.h">
+      <Filter>Include\thirdparty\dxc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\dxc\dxcapi.use.h">
+      <Filter>Include\thirdparty\dxc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utils.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Structures.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Common.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders\brdf.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Gui.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imconfig.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imgui.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imgui_impl_dx12.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imgui_impl_win32.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imgui_internal.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imstb_rectpack.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imstb_truetype.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\imgui\imstb_textedit.h">
+      <Filter>Include\thirdparty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders\shared.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Input.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GLTF.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\directxtk\Keyboard.h">
+      <Filter>Include\thirdparty\directxtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\directxtk\Mouse.h">
+      <Filter>Include\thirdparty\directxtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\directxtk\platformhelpers.h">
+      <Filter>Include\thirdparty\directxtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\tinygltf\tiny_gltf.h">
+      <Filter>Include\thirdparty\tinygltf</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\tinygltf\json.hpp">
+      <Filter>Include\thirdparty\tinygltf</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Textures.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\d3dx12\d3dx12.h">
+      <Filter>Include\thirdparty\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\directxtex\DirectXTex.h">
+      <Filter>Include\thirdparty\directxtex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\directxtk\ScreenGrab12.h">
+      <Filter>Include\thirdparty\directxtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thirdparty\stb\stb_image.h">
+      <Filter>Include\thirdparty\stb</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="include\thirdparty\directxtex\DirectXTex.inl">
+      <Filter>Include\thirdparty\directxtex</Filter>
+    </None>
+  </ItemGroup>
+</Project>

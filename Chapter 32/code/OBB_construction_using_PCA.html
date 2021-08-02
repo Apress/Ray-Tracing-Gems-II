@@ -1,0 +1,429 @@
+<html><body>
+<canvas id="Canvas" width="1080" height="720"/>
+
+<script id="Vert" type="shader/vertex">#version 300 es
+layout(location = 0) in vec3 position;
+void main()
+{
+    gl_Position = vec4(position,1.0);
+}
+</script>
+<script id="Frag" type="shader/fragment">#version 300 es
+precision mediump float;
+out vec4 fragColor;
+uniform float iTime;
+uniform vec2 iMouse;
+uniform vec2 iResolution;
+
+
+// Roughly spheroid shape
+const int nVerts = 42;
+const vec3 mesh[nVerts] = vec3[](
+vec3(-1.468689,-1.963555,0.097573),
+vec3(0.505874,-0.205919,-0.007964),
+vec3(-1.517807,-0.995600,1.232863),
+vec3(-2.227164,-1.342829,0.557186),
+vec3(-0.766356,-1.047875,-0.828205),
+vec3(0.845819,-0.518346,-1.008734),
+vec3(0.873975,1.087834,0.681610),
+vec3(-0.845819,0.518346,1.008734),
+vec3(-0.686115,0.545674,0.000643),
+vec3(1.249599,1.088200,-1.412118),
+vec3(2.227164,1.342829,-0.557186),
+vec3(1.468689,1.963555,-0.097573),
+vec3(-1.755414,-1.739347,0.782005),
+vec3(-0.194866,-0.862768,0.356910),
+vec3(-0.667961,-0.870884,0.880459),
+vec3(0.721339,-0.590360,-0.437116),
+vec3(-0.366120,-1.458826,-0.535563),
+vec3(-1.019405,-1.153469,0.670362),
+vec3(-2.201241,-1.374495,1.052163),
+vec3(-1.313726,-1.770073,-0.429451),
+vec3(-1.759552,-1.405222,-0.159297),
+vec3(-0.032841,-1.079332,-0.710543),
+vec3(1.415622,0.778577,0.041415),
+vec3(1.806260,0.484624,-0.920424),
+vec3(-0.048879,0.238348,0.695525),
+vec3(0.674638,0.330241,0.642611),
+vec3(-1.704303,-0.122680,0.781835),
+vec3(-1.389311,-0.280524,1.317585),
+vec3(-0.192113,0.066173,-0.456593),
+vec3(-1.533283,-0.503614,0.171707),
+vec3(1.389311,0.280524,-1.317585),
+vec3(0.441692,-0.030727,-1.211468),
+vec3(1.759552,1.405222,0.159297),
+vec3(-0.046708,0.920600,1.079724),
+vec3(-0.713616,0.121668,0.470251),
+vec3(0.667961,0.870884,-0.880459),
+vec3(2.201241,1.374495,-1.052163),
+vec3(1.313726,1.770073,0.429451),
+vec3(1.753655,1.035890,-0.115090),
+vec3(0.366120,1.458826,0.535563),
+vec3(0.366350,1.542033,0.093008),
+vec3(1.755414,1.739347,-0.782006));
+////////////////////////////////////////////////////////////////////////////////
+struct SurfaceHit
+{
+    float t;
+    vec3  c;
+};
+const SurfaceHit sNone = SurfaceHit(-1.0,vec3(0.0));
+////////////////////////////////////////////////////////////////////////////////
+SurfaceHit intersectRayPoint(vec3 ro,vec3 rd,vec3 p,float r)
+{
+    p -= ro;
+    
+    float t = dot(p,rd);
+    
+    if(distance(p,t*rd) > r) return sNone;
+    
+    return SurfaceHit(t,vec3(1.0,1.0,1.0));
+}
+////////////////////////////////////////////////////////////////////////////////
+SurfaceHit intersectRayAABBWireframe(vec3 ro,vec3 rd,vec3 pmin,vec3 pmax)
+{
+    vec3  tmin = (pmin-ro)/rd;
+    vec3  tmax = (pmax-ro)/rd;
+    vec3  sc   = min(tmin,tmax);
+    vec3  sf   = max(tmin,tmax);
+    float t0   = max(max(sc.x,sc.y),sc.z);
+    float t1   = min(min(sf.x,sf.y),sf.z);
+    if(!(t0 <= t1 && t1 > 0.0)) return sNone;
+    
+    vec3 n0 = -sign(rd)*step(sc.yzx,sc.xyz)*step(sc.zxy,sc.xyz);
+    vec3 n1 = -sign(rd)*step(sf.xyz,sf.yzx)*step(sf.xyz,sf.zxy);
+    
+    float t = t0;
+    
+    vec3 uv3 = ro+t0*rd;
+    vec2 uv2 = mix(uv3.xy,uv3.zz,abs(n0.xy));
+    float  u = max(abs(uv2.x),abs(uv2.y));
+           u = 1.0-step(u,0.49);
+    
+    if(u == 0.0)
+    {
+        t = t1;
+        
+        uv3 = ro+t1*rd;
+        uv2 = mix(uv3.xy,uv3.zz,abs(n1.xy));
+        u   = max(abs(uv2.x),abs(uv2.y));
+        u   = 1.0-step(u,0.49);
+        
+        if(u == 0.0) return sNone;
+    }
+    
+    return SurfaceHit(t,u*vec3(1.0,1.0,0.0));
+}
+////////////////////////////////////////////////////////////////////////////////
+SurfaceHit intersectRayOBBWireframe(vec3 ro,vec3 rd,mat4 m)
+{
+    mat4 invm = inverse(m);
+
+    vec3 roPrime = (invm*vec4(ro,1)).xyz;
+    vec3 rdPrime = (invm*vec4(rd,0)).xyz;
+    
+    return intersectRayAABBWireframe(roPrime,rdPrime,vec3(-0.5),vec3(0.5));
+}
+////////////////////////////////////////////////////////////////////////////////
+SurfaceHit opU(const SurfaceHit s1,const SurfaceHit s2)
+{
+    if(s2.t < s1.t && s2.t > 0.0 || s1.t < 0.0) return s2;
+    return s1;
+}
+////////////////////////////////////////////////////////////////////////////////
+mat4 scale( vec3 s)
+{
+	return mat4(s.x,0,0,0, 0,s.y,0,0, 0,0,s.z,0, 0,0,0,1);
+}
+////////////////////////////////////////////////////////////////////////////////
+mat4 translate(vec3 t)
+{
+	return mat4(vec4(1,0,0,0),vec4(0,1,0,0),vec4(0,0,1,0),vec4(t,1));
+}
+////////////////////////////////////////////////////////////////////////////////
+mat3 reflection(vec3 n)
+{
+	return mat3(vec3(1.0,0.0,0.0)-2.0*n*vec3(n.x),
+	            vec3(0.0,1.0,0.0)-2.0*n*vec3(n.y),
+	            vec3(0.0,0.0,1.0)-2.0*n*vec3(n.z));
+}
+////////////////////////////////////////////////////////////////////////////////
+void qr(const mat3 m,out mat3 q,out mat3 r)
+{
+	q = mat3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0);
+	r = m;
+	mat3 h;
+	for(int i=0; i<2; ++i)
+	{
+		vec3 v = vec3(0);
+		for(int j=i; j<3; ++j) v[j] = r[i][j];
+
+		float n = length(v);
+		if(abs(v[i]-n) < 5e-5) v *= -1.0;
+		v[i] -= n;
+		n     = length(v);
+		if(n != 0.0)
+		{
+			v /= n;
+			h  = reflection(v);
+			q  = q*h;
+			r  = h*r;
+		}
+	}
+}
+////////////////////////////////////////////////////////////////////////////////
+// Here we compute the eigendecmoposition of a matrix.
+// The covariance matrix is a symmetric positive definite matrix.
+// Eigenvectors are computed by sucesssive qr diagonalization using householder reflections.
+// Computing the tridiagonal matrix first makes this iterative process converge faster.
+// 
+// More info: https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix#Eigendecomposition_of_a_matrix
+// 
+// Please note that there are many eigenvector algorithms. Choose one that you
+// can benefit more in your implementation context.
+mat3 eigs(mat3 m)
+{
+	mat3 u = mat3(1,0,0, 0,1,0, 0,0,1);
+
+	// Tridiagonal matrix
+	vec3  c = vec3(0,m[0].yz);
+	float n = length(c);
+	if(abs(c.y-n) < 5e-5) c *= -1.0;
+	c.y -= n;
+	n    = length(c);
+	if(n != 0.0)
+	{
+		c /= n;
+		u  = reflection(c)*u;
+		m  = u*m*u;
+	}
+
+	// QR iterative matrix diagonalization
+	mat3 q,r;
+	float rtol = 0.0,atol = 1.0;
+	int i = 300;
+	while(i-- > 0 && atol > 5e-5)
+	{
+		qr(m,q,r);
+		u = u*q;
+		m = transpose(q)*m*q;
+
+			// Gershgorin circle approximation
+		vec3 diagonal = vec3(m[0][0],m[1][1],m[2][2]);
+		float length2 = dot(m[0],m[0])+dot(m[1],m[1])+dot(m[2],m[2]);
+		atol = rtol;
+		rtol = abs(length2-dot(diagonal,diagonal));
+		atol = abs(atol-rtol);
+	}
+
+	return u;
+}
+////////////////////////////////////////////////////////////////////////////////
+vec3 computeMean(int n)
+{
+	vec3 mean = vec3(0.0);
+    
+	for(int i=0; i<n; ++i)
+		mean += mesh[i];
+        
+	return mean/float(n);
+}
+////////////////////////////////////////////////////////////////////////////////
+void covariance(int n,out vec3 mean,out mat3 cov)
+{
+	mean = computeMean(n);
+	cov  = mat3(0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0);
+
+	for(int i=0; i<n; ++i)
+	{
+		vec3 v = mesh[i]-mean;
+		cov += outerProduct(v,v);
+	}
+    
+	cov /= float(n-1);
+}
+////////////////////////////////////////////////////////////////////////////////
+mat4 pca(int n)
+{
+    // We comptue the covariance matrix, which also gives us the mean of the
+    // vertex set
+	vec3 mean;
+	mat3 cov;
+	covariance(n,mean,cov);
+    // U is the eigenvector basis of the covariance matrix
+	mat3 u = eigs(cov);
+
+    // Now we compute the maxima and minima of the vertices at R⁻¹T⁻¹
+	mat3 ut = transpose(u);
+	vec3 v  = ut*(mesh[0]-mean);
+	vec3 minv = v,maxv = v,centerv;
+	for(int i=1; i<n; ++i)
+	{
+		v = ut*(mesh[i]-mean);
+		minv = min(minv,v);
+		maxv = max(maxv,v);
+	}
+    // We compute the centroid
+	centerv = (minv+maxv)*0.5;
+
+    // The final OBB matrix is created as M_obb = TRS
+	mat4 scale       = scale(maxv-minv);
+	mat4 rotation    = mat4(u);
+	mat4 translation = translate(mean+u*centerv);
+
+	return translation*rotation*scale;
+}
+////////////////////////////////////////////////////////////////////////////////
+SurfaceHit castRay(vec3 ro,vec3 rd)
+{ 
+    SurfaceHit s = sNone;
+    
+    for(int i=0; i<nVerts; ++i)
+        s = opU(s,intersectRayPoint(ro,rd,mesh[i],0.05));
+    
+    // In this part of the code where we compute the OBB based on the mesh vertices
+    // The OBB is described by a 4x4 matrix
+    mat4 m = pca(nVerts);
+    s = opU(s,intersectRayOBBWireframe(ro,rd,m));
+        
+    return s;
+}
+////////////////////////////////////////////////////////////////////////////////
+vec3 renderObjects(vec3 ro,vec3 rd)
+{
+	float near   = 0.5;
+	float far    = 64.0;
+	SurfaceHit s = castRay(ro,rd);
+
+	vec3 color = vec3(0.0);
+	if(s.t >= near && s.t <= far)
+       color = (1.0/log(s.t))*s.c;
+
+	return color;
+}
+////////////////////////////////////////////////////////////////////////////////
+mat3 setCamera(vec3 eye,vec3 target,vec3 up)
+{
+	vec3 z = normalize(eye-target);
+	vec3 x = normalize(cross(up,z));
+	vec3 y = cross(z,x);
+	return mat3(x,y,z);
+}
+////////////////////////////////////////////////////////////////////////////////
+mat3 setProjection(float aspect,float fov)
+{
+    float tg = tan(fov*0.5);
+    return mat3(aspect*tg, 0.0,  0.0,
+                0.0,        tg,  0.0,
+                0.0,       0.0, -1.0);
+}
+////////////////////////////////////////////////////////////////////////////////
+vec3 cartesian(vec3 spherical)
+{
+    return vec3(spherical.x*sin(spherical.y)*sin(spherical.z),
+                spherical.x*cos(spherical.y),
+                spherical.x*sin(spherical.y)*cos(spherical.z));
+}
+////////////////////////////////////////////////////////////////////////////////
+void main()
+{
+	vec2 fragCoord = gl_FragCoord.xy;
+
+    vec2 mouse = iMouse.xy/iResolution.xy;
+    
+    vec2 screenCoords = fragCoord/iResolution.xy;
+	     screenCoords = (screenCoords-vec2(0.5))*5.0;
+	
+    vec2 m  = vec2(mouse.x>0.0?mouse.x:cos(iTime*0.1)*0.5,mouse.y>0.0?mouse.y:0.5);
+    vec3 ro = cartesian(vec3(5.0,m.y*3.14,-m.x*6.28));
+	
+    float fov  = 3.14/4.0;
+    mat3  view = setCamera(ro,vec3(0,0.0,0.0),vec3(0,1.0,0));
+    mat3  proj = setProjection(iResolution.x/iResolution.y,fov);
+    mat3  vp   = view*proj;
+	vec3  rd   = normalize(vp*vec3(screenCoords,1.0));
+
+    vec3 l = normalize(vec3(0.0,1.0,-3.0));
+	vec3 color  = vec3(0.0);
+         color += renderObjects(ro,rd);
+
+    fragColor = vec4(color,1.0);
+}
+</script>
+
+
+<script type="text/javascript">
+function getShader(gl,type,id)
+{
+	var source = document.getElementById(id).textContent;
+	var shader = gl.createShader(type);
+
+    gl.shaderSource(shader,source);
+    gl.compileShader(shader);
+
+    if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))
+        alert(gl.getShaderInfoLog(shader));
+
+    return shader;
+}
+window.onload = function()
+{
+    var canvas = document.getElementById("Canvas");
+    canvas.onmousedown = function(e) { canvas.mouseDown = true;  }
+    canvas.onmouseup   = function(e) { canvas.mouseDown = false; }
+    canvas.mouseX = 0;
+    canvas.mouseY = 0;
+    canvas.onmousemove = function(e)
+    {
+    	if(!canvas.mouseDown) return;
+
+		var rect = canvas.getBoundingClientRect();
+      	x = Math.floor((e.clientX-rect.left)/(rect.right-rect.left)*canvas.width);
+        y = Math.floor(canvas.height-(e.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height);
+
+		canvas.mouseX = x;
+		canvas.mouseY = y;
+    }
+
+    var gl = canvas.getContext("webgl2");
+
+	var vert = getShader(gl,gl.VERTEX_SHADER,"Vert");
+	var frag = getShader(gl,gl.FRAGMENT_SHADER,"Frag");
+
+    var shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram,getShader(gl,gl.VERTEX_SHADER,"Vert"));
+    gl.attachShader(shaderProgram,getShader(gl,gl.FRAGMENT_SHADER,"Frag"));
+    gl.linkProgram(shaderProgram);
+    gl.useProgram(shaderProgram);
+    gl.enableVertexAttribArray(0);
+
+    vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+    var vertices = [
+    	-1.0, 1.0,1.0, -1.0,-1.0,1.0,  1.0, 1.0,1.0,
+ 		 1.0, 1.0,1.0, -1.0,-1.0,1.0,  1.0,-1.0,1.0, 
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+    gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+
+    gl.viewport(0,0,canvas.width,canvas.height);
+
+	var iTimeLocation       = gl.getUniformLocation(shaderProgram,"iTime");
+	var iMouseLocation      = gl.getUniformLocation(shaderProgram,"iMouse");
+	var iResolutionLocation = gl.getUniformLocation(shaderProgram,"iResolution");
+
+	var time = 0;
+	window.setInterval(function()
+	{
+		gl.uniform1f(iTimeLocation,time);
+		gl.uniform2f(iMouseLocation,canvas.mouseX,canvas.mouseY);
+		gl.uniform2f(iResolutionLocation,canvas.width,canvas.height);
+		time += 0.06;
+
+    	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    	gl.drawArrays(gl.TRIANGLES,0,6);
+	},0.12); // 30 FPS
+};
+</script>
+
+</body></html>
