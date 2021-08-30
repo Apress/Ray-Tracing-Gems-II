@@ -82,11 +82,22 @@ Ray generateFisheyeRay(vec2 pixel) {
 }
 ```
 
+Chapter 17, page 260, line 17 of the code listing is incorrect. The ```HitGroupRecord``` structure's ```Padding1``` variable should be removed since it is not necessary and its inclusion causes the structure size to *not* be a multiple of 32 bytes as required. The correct code for this structure is:
+```C++
+struct HitGroupRecord
+{
+  ShaderIdentifier ID;
+  D3D12_GPU_DESCRIPTOR_HANDLE SRVTableA = { };
+  D3D12_GPU_DESCRIPTOR_HANDLE SRVTableB = { };
+  uint64_t CBV = 0;
+  uint8_t Padding [8] = { }; // Needed to keep shader ID at 32-byte alignment
+};
+```
 
 ### Lesser Errors
 
 None so far!
 
-_Thanks to Zander Majercik and [@hatookov](https://twitter.com/hatookov) for reporting these errors._
+_Thanks to Zander Majercik, [@hatookov](https://twitter.com/hatookov), and Jeremy Ong for reporting these errors._
 
-Page last updated **August 11, 2021**
+Page last updated **August 30, 2021**
