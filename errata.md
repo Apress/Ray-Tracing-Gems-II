@@ -4,11 +4,9 @@ Corrections for the book [_Ray Tracing Gems II_](http://raytracinggems.com). The
 
 ## If you find an error, please let us know by emailing [raytracinggems@nvidia.com](mailto:raytracinggems@nvidia.com)
 
-### Significant Errors
+## Chapter 3
 
-Chapter 3, page 49: Listing 3-2, the value computed for ```aspectScale``` should be divided by 2.
-
-Chapter 3, page 49: Listing 3-2, is missing ```pixel += vec2(0.5f) - (imageSize / 2.0f);``` after computing ```aspectScale```.
+**Page 49: Listing 3-2**, the value computed for ```aspectScale``` should be divided by 2. This listing is also is missing ```pixel += vec2(0.5f) - (imageSize / 2.0f);``` after computing ```aspectScale```.
 
 The correct GLSL shader code for Listing 3-2 is:
 ```GLSL
@@ -25,9 +23,7 @@ Ray generatePinholeRay(vec2 pixel) {
 }
 ```
 
-Chapter 3, page 54: Listing 3-6, the variable ```hvPan``` is used but not declared or defined.
-
-Chapter 3, page 54: Listing 3-6, the variable ```distance``` should be defined as ```normalize(x, -y, -z);```.
+**Page 54: Listing 3-6**, the variable ```hvPan``` is used but not declared or defined. The variable ```distance``` should be defined as ```normalize(x, -y, -z);```.
 
 The correct GLSL shader code for Listing 3-6 is:
 ```GLSL
@@ -56,7 +52,7 @@ Ray paniniRay(vec2 pixel) {
 }
 ```
 
-Chapter 3, page 55: Listing 3-7, lines 6, 8, and 10 are incorrect.
+**Page 55: Listing 3-7**, lines 6, 8, and 10 are incorrect.
 
 The correct GLSL shader code for Listing 3-7 is:
 ```GLSL
@@ -82,7 +78,11 @@ Ray generateFisheyeRay(vec2 pixel) {
 }
 ```
 
-Chapter 17, page 260, line 17 of the code listing is incorrect. The ```HitGroupRecord``` structure's ```Padding1``` variable should be removed since it is not necessary and its inclusion causes the structure size to *not* be a multiple of 32 bytes as required. The correct code for this structure is:
+## Chapter 17
+
+**Page 260**: line 17 of the code listing is incorrect. The ```HitGroupRecord``` structure's ```Padding1``` variable should be removed since it is not necessary and its inclusion causes the structure size to *not* be a multiple of 32 bytes as required.
+
+The correct code for the ```HitGroupRecord``` structure is:
 ```C++
 struct HitGroupRecord
 {
@@ -100,4 +100,4 @@ None so far!
 
 _Thanks to Zander Majercik, [@hatookov](https://twitter.com/hatookov), and Jeremy Ong for reporting these errors._
 
-Page last updated **August 30, 2021**
+Page last updated **August 31, 2021**
