@@ -4,7 +4,7 @@ Corrections for the book [_Ray Tracing Gems II_](http://raytracinggems.com). The
 
 ## If you find an error, please let us know by emailing [raytracinggems@nvidia.com](mailto:raytracinggems@nvidia.com)
 
-## Chapter 3
+## Chapter 3: Essential Ray Generation Shaders
 
 **Page 49: Listing 3-2**, the value computed for ```aspectScale``` should be divided by 2. This listing is also is missing ```pixel += vec2(0.5f) - (imageSize / 2.0f);``` after computing ```aspectScale```.
 
@@ -78,7 +78,13 @@ Ray generateFisheyeRay(vec2 pixel) {
 }
 ```
 
-## Chapter 17
+## Chapter 10: Texture Coordinate Gradients Estimation for Ray Cones
+
+**Page 118**: Figure 10-4, the angle that is denoted α should instead be α/2
+
+**Page 119**: Under equation 10-1, the 2nd sentence of the paragraph says we rotate by "+α" and "-α". It should read "+α/2" and "-α/2".
+
+## Chapter 17: Using Bindless Resources with DirectX Raytracing
 
 **Page 260**: line 17 of the code listing is incorrect. The ```HitGroupRecord``` structure's ```Padding1``` variable should be removed since it is not necessary and its inclusion causes the structure size to *not* be a multiple of 32 bytes as required.
 
@@ -98,6 +104,6 @@ struct HitGroupRecord
 
 None so far!
 
-_Thanks to Zander Majercik, [@hatookov](https://twitter.com/hatookov), and Jeremy Ong for reporting these errors._
+_Thanks to Zander Majercik, [@hatookov](https://twitter.com/hatookov), Jeremy Ong, and Tomas Akenine-Möller for reporting these errors._
 
-Page last updated **August 31, 2021**
+Page last updated **September 1, 2021**
