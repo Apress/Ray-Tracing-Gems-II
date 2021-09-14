@@ -42,7 +42,7 @@ Ray paniniRay(vec2 pixel) {
     float x = sin(hvPan.x) * M;
     float z = (cos(hvPan.x) * M) - paniniDistance;
 
-    float S = (d + 1) / (d + z);
+    float S = (paniniDistance + 1) / (paniniDistance + z);
 
     float y = lerp(hvPan.y / S, hvPan.y * z, verticalCompression);
 
