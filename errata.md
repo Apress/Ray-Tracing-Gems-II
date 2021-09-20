@@ -11,7 +11,8 @@ Corrections for the book [_Ray Tracing Gems II_](http://raytracinggems.com). The
 The correct GLSL shader code for Listing 3-2 is:
 ```GLSL
 // Pixel is the integer position >= 0 and < imageSize.
-Ray generatePinholeRay(vec2 pixel) {
+Ray generatePinholeRay(vec2 pixel)
+{
   float tanHalfAngle = tan(cameraFovAngle / 2.f);
   float aspectScale = ((cameraFovDirection == 0) ? imageSize.x : imageSize.y) / 2.f;
   
@@ -27,7 +28,8 @@ Ray generatePinholeRay(vec2 pixel) {
 
 The correct GLSL shader code for Listing 3-6 is:
 ```GLSL
-Ray paniniRay(vec2 pixel) {
+Ray paniniRay(vec2 pixel)
+{
     vec2 pixelCenterCoords = vec2(pixel) + vec2(0.5f) - (imageSize / 2.f);
 
     float halfFOV = cameraFovAngle / 2.f;
@@ -56,7 +58,8 @@ Ray paniniRay(vec2 pixel) {
 
 The correct GLSL shader code for Listing 3-7 is:
 ```GLSL
-Ray generateFisheyeRay(vec2 pixel) {
+Ray generateFisheyeRay(vec2 pixel)
+{
     vec2 clampedHalfFOV = min(cameraFovAngle, pi) / 2.f;
     vec2 angle = (pixel - imageSize / 2.f) * clampedHalfFOV;
 
@@ -75,6 +78,68 @@ Ray generateFisheyeRay(vec2 pixel) {
     }
     vec3 dir = normalize(vec3(sin(angle.x), -sin(angle.y) * cos(angle.x), -cos(angle.x) * cos(angle.y)));
     return Ray(vec3(0.f), 0.f, dir, INFINITY);
+}
+```
+
+## Chapter 5: Sampling Textures with Missing Derivatives
+
+_Note: all scalars in this chapter can be coalesced into a single scalar, which multiplies two `float2`. After the below corrections, the code contains 15 scalar multiplications, but this can be reduced to 5. The corrected code removes the optimizations for clarity._
+
+**Page 81: Section 5.2.3**, the ```BaryCentricWorldDerivatives()``` code listing near the bottom of the page has a few errors.
+
+The correct code listing is:
+```C++
+void BarycentricWorldDerivatives(float3 A1, float3 A2, out float3 du_dx, out float3 dv_dx)
+{
+    float3 Nt = cross(A1, A2);
+    du_dx = cross(A2, Nt) / dot(Nt, Nt);
+    dv_dx = cross(Nt, A1) / dot(Nt, Nt);
+}
+```
+
+**Page 82: Section 5.2.4**, the ```WorldScreenDerivatives()``` code listing in the middle of the page has an error related to the `wMx` variable.
+
+The correct code listing is:
+```C++
+float3x3 WorldScreenDerivatives(float4x4 WorldToTargetMatrix, float4x4 TargetToWorldMatrix, float4 x)
+{
+    float wMx = dot(WorldToTargetMatrix[3], x);
+    float3x3 dx_dxt = (float3x3)TargetToWorldMatrix;
+    dx_dxt[0] = wMx * (dx_dxt[0] - x.x * TargetToWorldMatrix[3].xyz);
+    dx_dxt[1] = wMx * (dx_dxt[1] - x.y * TargetToWorldMatrix[3].xyz);
+    dx_dxt[2] = wMx * (dx_dxt[2] - x.z * TargetToWorldMatrix[3].xyz);
+    return dx_dxt;
+}
+```
+
+**Page 83: Section 5.2.6**, the ```BarycentricDerivatives()``` code listing is updated based on the `wMx` variable changes in `WorldScreenDerivatives()`.
+
+The correct code listing is:
+```C++
+float2x2 BarycentricDerivatives(float4 x, float3 n, float3 x0, float3 x1, float3 x2,
+        float4x4 WorldToTargetMatrix , float4x4 TargetToWorldMatrix)
+{
+    // Derivatives of barycentric coordinates with respect to
+    // world-space coordinates (Section 5.2.3).
+    float3 du_dx , dv_dx;
+    BarycentricWorldDerivatives(x1 - x0, x2 - x0, du_dx , dv_dx);
+
+    // Partial derivatives of world-space coordinates with respect
+    // to screen-space coordinates (Section 5.2.4). (Only the
+    // relevant 3x3 part is considered.)
+    float3x3 dx_dxt = WorldScreenDerivatives(WorldToTargetMatrix, TargetToWorldMatrix, x);
+
+    // Partial derivatives of barycentric coordinates with respect
+    // to screen-space coordinates.
+    float3 du_dxt = du_dx.x * dx_dxt[0] + du_dx.y * dx_dxt[1] + du_dx.z * dx_dxt[2];
+    float3 dv_dxt = dv_dx.x * dx_dxt[0] + dv_dx.y * dx_dxt[1] + dv_dx.z * dx_dxt[2];
+
+    // Derivatives of barycentric coordinates with respect to
+    // screen-space x and y coordinates (Section 5.2.5).
+    float2 ddepth_dXY = DepthGradient(x, n, TargetToWorldMatrix);
+    float2 du_dXY = du_dxt.xy + du_dxt.z * ddepth_dXY;
+    float2 dv_dXY = dv_dxt.xy + dv_dxt.z * ddepth_dXY;
+    return float2x2(du_dXY , dv_dXY);
 }
 ```
 
@@ -104,6 +169,6 @@ struct HitGroupRecord
 
 None so far!
 
-_Thanks to Zander Majercik, [@hatookov](https://twitter.com/hatookov), Jeremy Ong, and Tomas Akenine-Möller for reporting these errors._
+_Thanks to Zander Majercik, [@hatookov](https://twitter.com/hatookov), Jeremy Ong, Leon Brands, and Tomas Akenine-Möller for reporting these errors._
 
-Page last updated **September 1, 2021**
+Page last updated **September 20, 2021**
