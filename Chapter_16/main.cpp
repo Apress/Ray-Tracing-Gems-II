@@ -594,7 +594,7 @@ int main(int argc, const char** argv)
 
       // Upload the instance struct to the device.
       nvvk::Buffer bufferInstances =
-          allocator.createBuffer(cmdBuffer, sizeof(instance), &instance, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+          allocator.createBuffer(cmdBuffer, sizeof(instance), &instance, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
 
       // Add a memory barrier to ensure that createBuffer's upload command
       // finishes before starting the TLAS build.
