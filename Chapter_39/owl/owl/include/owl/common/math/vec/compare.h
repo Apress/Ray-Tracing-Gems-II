@@ -109,52 +109,8 @@ namespace owl {
       -> decltype(nt(eq(a,b)))
     { return nt(eq(a,b)); }
 
-    // ------------------------------------------------------------------
-    // lt (<)
-    // ------------------------------------------------------------------
-
-    template<typename T>
-    inline __both__ auto lt(const vec_t<T,2> &a, const vec_t<T,2> &b)
-      -> vec_t<decltype(a.x<b.x),2>
-    { return { a.x<b.x, a.y<b.y }; }
-
-      template<typename T>
-      inline __both__ auto lt(const vec_t<T,3> &a, const vec_t<T,3> &b)
-        -> vec_t<decltype(a.x<b.x),3>
-      { return { a.x<b.x, a.y<b.y, a.z<b.z }; }
-
-        template<typename T>
-        inline __both__ auto lt(const vec_t<T,4> &a, const vec_t<T,4> &b)
-          -> vec_t<decltype(a.x<b.x),4>
-        { return { a.x<b.x, a.y<b.y, a.z<b.z, a.w<b.w }; }
-
-        // ------------------------------------------------------------------
-        // le (<=)
-        // ------------------------------------------------------------------
-
-          template<typename T, int N>
-          inline __both__ auto le(const vec_t<T,N> &a, const vec_t<T,N> &b)
-            -> decltype(nt(lt(b,a)))
-          { return nt(lt(b,a)); }
-
-    // ------------------------------------------------------------------
-    // gt (>)
-    // ------------------------------------------------------------------
-
-    template<typename T, int N>
-    inline __both__ auto gt(const vec_t<T,N> &a, const vec_t<T,N> &b)
-      -> decltype(lt(b,a))
-    { return lt(b,a); }
-
-    // ------------------------------------------------------------------
-    // ge (>=)
-    // ------------------------------------------------------------------
-
-    template<typename T, int N>
-    inline __both__ auto ge(const vec_t<T,N> &a, const vec_t<T,N> &b)
-      -> decltype(nt(lt(a,b)))
-    { return nt(lt(a,b)); }
-
+   
+    
     // ------------------------------------------------------------------
     // reduce
     // ------------------------------------------------------------------

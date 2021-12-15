@@ -14,29 +14,23 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${OWL_VIEWER_INCLUDES})
+embed_ptx(
+  OUTPUT_TARGET
+    adv_optix7course-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    devicePrograms.cu
+)
 
-cuda_compile_and_embed(embedded_ptx_code devicePrograms.cu)
-
-cuda_add_library(toneMap STATIC
-  toneMap.cu)
 add_executable(adv_optix7course
-  ${embedded_ptx_code}
-  devicePrograms.cu
-  optix7.h
-  CUDABuffer.h
+  # the file with embedded PTX string for the device programs:
   SampleRenderer.h
   SampleRenderer.cpp
+  Model.h
   Model.cpp
+  LaunchParams.h
   main.cpp
-  )
+)
 
-target_link_libraries(adv_optix7course
-  toneMap
-  # optix dependencies, for rendering
-  ${optix_LIBRARY}
-  ${CUDA_LIBRARIES}
-  ${CUDA_CUDA_LIBRARY}
-  # owl viewer, and everything it requires
-  ${OWL_VIEWER_LIBRARIES}
-  )
+target_link_libraries(adv_optix7course PRIVATE adv_optix7course-ptx owl_viewer)

@@ -56,6 +56,8 @@ namespace owl {
 
     /*! name of the program within this module */
     const std::string progName;
+    /*! the name, annotated wiht optix' "__miss__" */
+    const std::string annotatedProgName;
   };
   
   /*! an actual instance of a miss program - defined by its type and

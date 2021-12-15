@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2018-2019 Ingo Wald                                            //
+// Copyright 2018-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -22,25 +22,21 @@
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
 
-  extern "C" char embedded_ptx_code[];
+  extern "C" char devicePrograms_ptx[];
 
   /*! constructor - performs all setup, including initializing
     optix, creates module, pipeline, programs, SBT, etc. */
   SampleRenderer::SampleRenderer(const Model *model, const QuadLight &light)
     : model(model)
   {
-    // createContext();
     std::cout << "for now, create exactly one device" << std::endl;
     context = owlContextCreate(nullptr,1);
     owlContextSetRayTypeCount(context,2);
-    
-    // createModule();
-    module = owlModuleCreate(context,embedded_ptx_code);
-    // createRaygenPrograms();
+
+    module = owlModuleCreate(context,devicePrograms_ptx);
     rayGen
       = owlRayGenCreate(context,module,"renderFrame",
                         /* no sbt data: */0,nullptr,-1);
-    // createMissPrograms();
     missProgRadiance
       = owlMissProgCreate(context,module,"radiance",
                           /* no sbt data: */0,nullptr,-1);
@@ -50,9 +46,9 @@ namespace osc {
 
     OWLVarDecl launchParamsVars[] = {
       { "world", OWL_GROUP, OWL_OFFSETOF(LaunchParams,traversable)},
-      
+
       { "numPixelSamples", OWL_INT,    OWL_OFFSETOF(LaunchParams,numPixelSamples)},
-      
+
       { "frame.frameID", OWL_INT,    OWL_OFFSETOF(LaunchParams,frame.frameID)},
       { "frame.fbColor",OWL_BUFPTR,OWL_OFFSETOF(LaunchParams,frame.fbColor)},
       { "frame.fbFinal",OWL_RAW_POINTER,OWL_OFFSETOF(LaunchParams,frame.fbFinal)},
@@ -63,12 +59,13 @@ namespace osc {
       { "light.du",    OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,light.du)},
       { "light.dv",    OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,light.dv)},
       { "light.power",    OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,light.power)},
+
       // camera settings:
       { "camera.position", OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,camera.position)},
       { "camera.direction", OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,camera.direction)},
       { "camera.horizontal", OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,camera.horizontal)},
       { "camera.vertical", OWL_FLOAT3, OWL_OFFSETOF(LaunchParams,camera.vertical)},
-      { /* sentinel to mark end of list */ }
+      { nullptr /* sentinel to mark end of list */ }
     };
     launchParams
       = owlParamsCreate(context,sizeof(LaunchParams),
@@ -76,34 +73,28 @@ namespace osc {
 
     createTextures();
     buildAccel();
-    
+
     owlBuildPrograms(context);
     owlBuildPipeline(context);
     owlBuildSBT(context);
-    
+
     owlParamsSet3f(launchParams,"light.origin",(const owl3f&)light.origin);
-    owlParamsSet3f(launchParams,"light.du",(const owl3f&)light.du);
-    owlParamsSet3f(launchParams,"light.dv",(const owl3f&)light.dv);
-    owlParamsSet3f(launchParams,"light.power",(const owl3f&)light.power);
+    owlParamsSet3f(launchParams,"light.du",    (const owl3f&)light.du);
+    owlParamsSet3f(launchParams,"light.dv",    (const owl3f&)light.dv);
+    owlParamsSet3f(launchParams,"light.power", (const owl3f&)light.power);
   }
 
   void SampleRenderer::createTextures()
   {
     int numTextures = (int)model->textures.size();
 
-#if OWL_TEXTURES
     textures.resize(numTextures);
-#else
-    textureArrays.resize(numTextures);
-    textureObjects.resize(numTextures);
-#endif
-    
+
     for (int textureID=0;textureID<numTextures;textureID++) {
       auto texture = model->textures[textureID];
 
       int32_t width  = texture->resolution.x;
       int32_t height = texture->resolution.y;
-#if OWL_TEXTURES
       this->textures[textureID]
         = owlTexture2DCreate(context,
                              OWL_TEXEL_FORMAT_RGBA8,
@@ -112,49 +103,9 @@ namespace osc {
                              texture->pixel,
                              OWL_TEXTURE_LINEAR,
                              OWL_TEXTURE_CLAMP);
-#else
-      int32_t numComponents = 4;
-      int32_t pitch  = int(width*numComponents*sizeof(uint8_t));
-      cudaResourceDesc res_desc = {};
-      
-      cudaChannelFormatDesc channel_desc;
-      channel_desc = cudaCreateChannelDesc<uchar4>();
-      
-      cudaArray_t   &pixelArray = textureArrays[textureID];
-      CUDA_CHECK(MallocArray(&pixelArray,
-                             &channel_desc,
-                             width,height));
-      
-      CUDA_CHECK(Memcpy2DToArray(pixelArray,
-                                 /* offset */0,0,
-                                 texture->pixel,
-                                 pitch,pitch,height,
-                                 cudaMemcpyHostToDevice));
-      
-      res_desc.resType          = cudaResourceTypeArray;
-      res_desc.res.array.array  = pixelArray;
-      
-      cudaTextureDesc tex_desc     = {};
-      tex_desc.addressMode[0]      = cudaAddressModeWrap;
-      tex_desc.addressMode[1]      = cudaAddressModeWrap;
-      tex_desc.filterMode          = cudaFilterModeLinear;
-      tex_desc.readMode            = cudaReadModeNormalizedFloat;
-      tex_desc.normalizedCoords    = 1;
-      tex_desc.maxAnisotropy       = 1;
-      tex_desc.maxMipmapLevelClamp = 99;
-      tex_desc.minMipmapLevelClamp = 0;
-      tex_desc.mipmapFilterMode    = cudaFilterModePoint;
-      tex_desc.borderColor[0]      = 1.0f;
-      tex_desc.sRGB                = 0;
-      
-      // Create texture object
-      cudaTextureObject_t cuda_tex = 0;
-      CUDA_CHECK(CreateTextureObject(&cuda_tex, &res_desc, &tex_desc, nullptr));
-      textureObjects[textureID] = cuda_tex;
-#endif
     }
   }
-  
+
   void SampleRenderer::buildAccel()
   {
     const int numMeshes = (int)model->meshes.size();
@@ -184,24 +135,13 @@ namespace osc {
       // upload the model to the device: the builder
       TriangleMesh &mesh = *model->meshes[meshID];
 
-// #if 0
-//       char fileName[1000];
-//       sprintf(fileName,"repro_%03i.obj",meshID);
-//       std::ofstream out(fileName);
-//       for (auto v : mesh.vertex)
-//         out << "v " << v.x << " "  << v.y << " "  << v.z << std::endl;
-//       for (auto idx : mesh.index) {
-//         vec3i v = idx+1;
-//         out << "f " << v.x << " "  << v.y << " "  << v.z << std::endl;
-//       }
-// #endif
-      OWLBuffer vertexBuffer 
+      OWLBuffer vertexBuffer
         = owlDeviceBufferCreate(context,OWL_FLOAT3,mesh.vertex.size(),
                                 mesh.vertex.data());
-      OWLBuffer indexBuffer  
+      OWLBuffer indexBuffer
         = owlDeviceBufferCreate(context,OWL_INT3,mesh.index.size(),
                                 mesh.index.data());
-      OWLBuffer normalBuffer 
+      OWLBuffer normalBuffer
         = mesh.normal.empty()
         ? nullptr
         : owlDeviceBufferCreate(context,OWL_FLOAT3,mesh.normal.size(),
@@ -260,12 +200,6 @@ namespace osc {
     frameID++;
 
     owlLaunch2D(rayGen,fbSize.x,fbSize.y,launchParams);
-    
-    // sync - make sure the frame is rendered before we download and
-    // display (obviously, for a high-performance application you
-    // want to use streams and double-buffering, but for this simple
-    // example, this will have to do)
-    CUDA_SYNC_CHECK();
   }
 
   /*! set camera to render with */
@@ -277,7 +211,7 @@ namespace osc {
     owlParamsSet1i(launchParams,"frame.frameID",frameID);
     const vec3f position  = camera.from;
     const vec3f direction = normalize(camera.at-camera.from);
-    
+
     const float cosFovy = 0.66f;
     const float aspect
       = float(fbSize.x)
@@ -294,7 +228,7 @@ namespace osc {
     owlParamsSet3f(launchParams,"camera.vertical",(const owl3f&)vertical);
     owlParamsSet3f(launchParams,"camera.horizontal",(const owl3f&)horizontal);
   }
-  
+
   /*! resize frame buffer to given resolution */
   void SampleRenderer::resize(void *fbPointer, const vec2i &newSize)
   {
@@ -312,5 +246,5 @@ namespace osc {
     // and re-set the camera, since aspect may have changed
     setCamera(lastSetCamera);
   }
-  
+
 } // ::osc

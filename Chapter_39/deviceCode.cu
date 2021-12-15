@@ -67,7 +67,7 @@ namespace cdf {
     float pdfy;
   };
 
-  __device__ float sample_cdf(const float* data, unsigned int n, float x, unsigned int *idx, float* pdf) 
+  __device__ float sample_cdf(const float* data, unsigned int n, float x, int *idx, float* pdf) 
   {
       *idx = upper_bound(data, data + n, x) - data;
       float scaled_sample;
@@ -108,7 +108,7 @@ namespace cdf {
     int width = lp.environmentMapWidth;
     int height = lp.environmentMapHeight;
     float row_pdf, col_pdf;
-    unsigned x, y;
+    int x, y;
     ry = sample_cdf(rows, height, ry, &y, &row_pdf);
     y = max(min(y, height - 1), 0);
     rx = sample_cdf(cols + y * width, width, rx, &x, &col_pdf);
@@ -243,7 +243,7 @@ namespace cdf {
       1,// SBT stride
       0,// missSBTIndex 
       p0, p1, p2, p3);
-    return {__int_as_float(p0) * lp.environmentMapWidth, __int_as_float(p1), __int_as_float(p2), __int_as_float(p3)};
+    return {int(__int_as_float(p0) * lp.environmentMapWidth), int(__int_as_float(p1)), __int_as_float(p2), __int_as_float(p3)};
   }
 
 

@@ -14,16 +14,18 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-add_executable(int13-motionBlurBoxes
-  hostCode.cpp
-  ${ptxCode}
-  )
+embed_ptx(
+  OUTPUT_TARGET
+    int13-motionBlurBoxes-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
+
+add_executable(int13-motionBlurBoxes hostCode.cpp)
 target_link_libraries(int13-motionBlurBoxes
-  ${OWL_LIBRARIES}
-  ${OWL_VIEWER_LIBRARIES}
-  )
-
-
+  PRIVATE
+    int13-motionBlurBoxes-ptx
+    owl_viewer
+)

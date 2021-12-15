@@ -19,20 +19,20 @@
 #include "owl/common.h"
 #include <cuda_runtime.h>
 
-#define CUDA_CHECK( call )                                              \
+#define OWL_CUDA_CHECK( call )                                              \
   {                                                                     \
     cudaError_t rc = call;                                              \
     if (rc != cudaSuccess) {                                            \
       fprintf(stderr,                                                   \
               "CUDA call (%s) failed with code %d (line %d): %s\n",     \
               #call, rc, __LINE__, cudaGetErrorString(rc));             \
-      throw std::runtime_error("fatal cuda error");                     \
+      OWL_RAISE("fatal cuda error");                                    \
     }                                                                   \
   }
 
-#define CUDA_CALL(call) CUDA_CHECK(cuda##call)
+#define OWL_CUDA_CALL(call) OWL_CUDA_CHECK(cuda##call)
 
-#define CUDA_CHECK2( where, call )                                      \
+#define OWL_CUDA_CHECK2( where, call )                                      \
   {                                                                     \
     cudaError_t rc = call;                                              \
     if(rc != cudaSuccess) {                                             \
@@ -43,24 +43,24 @@
       fprintf(stderr,                                                   \
               "CUDA call (%s) failed with code %d (line %d): %s\n",     \
               #call, rc, __LINE__, cudaGetErrorString(rc));             \
-      throw std::runtime_error("fatal cuda error");                     \
+      OWL_RAISE("fatal cuda error");                                    \
     }                                                                   \
   }
 
-#define CUDA_SYNC_CHECK()                                       \
+#define OWL_CUDA_SYNC_CHECK()                                       \
   {                                                             \
     cudaDeviceSynchronize();                                    \
     cudaError_t rc = cudaGetLastError();                        \
     if (rc != cudaSuccess) {                                    \
       fprintf(stderr, "error (%s: line %d): %s\n",              \
               __FILE__, __LINE__, cudaGetErrorString(rc));      \
-      throw std::runtime_error("fatal cuda error");             \
+      OWL_RAISE("fatal cuda error");                            \
     }                                                           \
   }
 
 
 
-#define CUDA_CHECK_NOTHROW( call )                                      \
+#define OWL_CUDA_CHECK_NOTHROW( call )                                      \
   {                                                                     \
     cudaError_t rc = call;                                              \
     if (rc != cudaSuccess) {                                            \
@@ -71,9 +71,9 @@
     }                                                                   \
   }
 
-#define CUDA_CALL_NOTHROW(call) CUDA_CHECK_NOTHROW(cuda##call)
+#define OWL_CUDA_CALL_NOTHROW(call) OWL_CUDA_CHECK_NOTHROW(cuda##call)
 
-#define CUDA_CHECK2_NOTHROW( where, call )                              \
+#define OWL_CUDA_CHECK2_NOTHROW( where, call )                              \
   {                                                                     \
     cudaError_t rc = call;                                              \
     if(rc != cudaSuccess) {                                             \
@@ -84,7 +84,7 @@
       fprintf(stderr,                                                   \
               "CUDA call (%s) failed with code %d (line %d): %s\n",     \
               #call, rc, __LINE__, cudaGetErrorString(rc));             \
-      throw std::runtime_error("fatal cuda error");                     \
+      exit(2);                                                          \
     }                                                                   \
   }
 

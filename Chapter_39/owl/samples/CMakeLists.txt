@@ -14,26 +14,16 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-# for STB image read/write
-include_directories(${PROJECT_SOURCE_DIR}/samples/common/3rdParty)
-# for public OWL API:
-include_directories(${OWL_INCLUDES})
+# support libraries
+add_subdirectory(common)
 
 # ------------------------------------------------------------------
 #cmdline-only samples, also used for 'make test'
 # ------------------------------------------------------------------
 add_subdirectory(cmdline)
 
+if (TARGET owl_viewer)
 
-# ------------------------------------------------------------------
-# advanced sapmles and interactive samples require the interative
-# viewer widget. try building this, and include those only if tihs
-# worked (it may fail if liiraries like opengl, glfw, etc are missing)
-# ------------------------------------------------------------------
-add_subdirectory(common/owlViewer)
-
-if (OWL_HAVE_VIEWER)
-  
   # interactive tutorial-style samples (these will try to open windows)
   add_subdirectory(interactive)
 
@@ -41,15 +31,5 @@ if (OWL_HAVE_VIEWER)
   add_subdirectory(advanced)
 
 else()
-  message(WARNING "#owl.cmake: could not build owlViewer library; skipping advanced samples")
+  message(WARNING "#owl.cmake: could not build owl_viewer library; skipping advanced samples")
 endif()
-
-
-
-# -------------------------------------------------------
-# export those back to our parent
-# -------------------------------------------------------
-set(OWL_VIEWER_INCLUDES  ${OWL_VIEWER_INCLUDES}  PARENT_SCOPE)
-set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
-set(OWL_HAVE_TBB         ${OWL_HAVE_TBB}         PARENT_SCOPE)
-

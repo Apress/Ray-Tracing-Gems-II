@@ -35,4 +35,5 @@ Session.vim
 .idea
 !*png/*.pdf
 .vs/
+samples/advanced/optix7course/models/
 

@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -39,9 +39,11 @@ namespace owl {
 
   InstanceGroup::InstanceGroup(Context *const context,
                                size_t numChildren,
-                               Group::SP      *groups)
+                               Group::SP *groups,
+                               unsigned int _buildFlags)
     : Group(context,context->groups),
-      children(numChildren)
+      children(numChildren),
+      buildFlags( (_buildFlags > 0) ? _buildFlags : defaultBuildFlags)
   {
     std::vector<uint32_t> childIDs;
     if (groups) {
@@ -90,15 +92,23 @@ namespace owl {
              children.size()*sizeof(affine3f));
     } break;
     default:
-      throw std::runtime_error("used matrix format not yet implmeneted for"
-                               " InstanceGroup::setTransforms");
+      OWL_RAISE("used matrix format not yet implmeneted for"
+                " InstanceGroup::setTransforms");
     };
   }
 
   /* set instance IDs to use for the children - MUST be an array of children.size() items */
   void InstanceGroup::setInstanceIDs(const uint32_t *_instanceIDs)
   {
+    instanceIDs.resize(children.size());
     std::copy(_instanceIDs,_instanceIDs+instanceIDs.size(),instanceIDs.data());
+  }
+
+  /* set visibility masks to use for the children - MUST be an array of children.size() items */
+  void InstanceGroup::setVisibilityMasks(const uint8_t *_visibilityMasks)
+  {
+    visibilityMasks.resize(children.size());
+    std::copy(_visibilityMasks,_visibilityMasks+visibilityMasks.size(),visibilityMasks.data());
   }
   
   void InstanceGroup::setChild(size_t childID, Group::SP child)
@@ -148,7 +158,16 @@ namespace owl {
     if (children.size() > maxInstsPerIAS)
       throw std::runtime_error("number of children in instance group exceeds "
                                "OptiX's MAX_INSTANCES_PER_IAS limit");
-      
+
+    if (!FULL_REBUILD && !(buildFlags & OPTIX_BUILD_FLAG_ALLOW_UPDATE))
+      throw std::runtime_error("trying to refit an accel struct that was not built with OPTIX_BUILD_FLAG_ALLOW_UPDATE");
+    
+    if (FULL_REBUILD) {
+      dd.memFinal = 0;
+      dd.memPeak = 0;
+    }
+   
+
     // ==================================================================
     // create instance build inputs
     // ==================================================================
@@ -184,9 +203,8 @@ namespace owl {
         
       oi.flags             = OPTIX_INSTANCE_FLAG_NONE;
       oi.instanceId        = (instanceIDs.empty())?uint32_t(childID):instanceIDs[childID];
-      oi.visibilityMask    = 255;
+      oi.visibilityMask    = (visibilityMasks.empty()) ? 255 : visibilityMasks[childID];
       oi.sbtOffset         = context->numRayTypes * child->getSBTOffset();
-      oi.visibilityMask    = 255;
       oi.traversableHandle = child->getTraversable(device);
       assert(oi.traversableHandle);
       
@@ -210,11 +228,8 @@ namespace owl {
     // ==================================================================
     // set up accel uptions
     // ==================================================================
-    accelOptions.buildFlags =
-      OPTIX_BUILD_FLAG_PREFER_FAST_TRACE
-      |
-      OPTIX_BUILD_FLAG_ALLOW_UPDATE
-      ;
+    accelOptions.buildFlags = this->buildFlags;
+
     accelOptions.motionOptions.numKeys = 1;
     if (FULL_REBUILD)
       accelOptions.operation            = OPTIX_BUILD_OPERATION_BUILD;
@@ -247,8 +262,12 @@ namespace owl {
     DeviceMemory tempBuffer;
     tempBuffer.alloc(tempSize);
       
-    if (FULL_REBUILD)
+    if (FULL_REBUILD) {
       dd.bvhMemory.alloc(blasBufferSizes.outputSizeInBytes);
+      dd.memPeak += tempBuffer.size();
+      dd.memPeak += dd.bvhMemory.size();
+      dd.memFinal = dd.bvhMemory.size();
+    }
       
     OPTIX_CHECK(optixAccelBuild(optixContext,
                                 /* todo: stream */0,
@@ -267,7 +286,7 @@ namespace owl {
                                 nullptr,0u
                                 ));
       
-    CUDA_SYNC_CHECK();
+    OWL_CUDA_SYNC_CHECK();
     
     // ==================================================================
     // aaaaaand .... clean up
@@ -410,7 +429,7 @@ namespace owl {
       oi.flags             = OPTIX_INSTANCE_FLAG_NONE;
       oi.instanceId        = (instanceIDs.empty())?uint32_t(childID):instanceIDs[childID];
       oi.sbtOffset         = context->numRayTypes * child->getSBTOffset();
-      oi.visibilityMask    = 1; //255;
+      oi.visibilityMask    = (visibilityMasks.empty()) ? 255 : visibilityMasks[childID];
       oi.traversableHandle = childMotionHandle; 
       optixInstances[childID] = oi;
     }
@@ -502,7 +521,7 @@ namespace owl {
                                 nullptr,0u
                                 ));
 
-    CUDA_SYNC_CHECK();
+    OWL_CUDA_SYNC_CHECK();
     
     // ==================================================================
     // aaaaaand .... clean up

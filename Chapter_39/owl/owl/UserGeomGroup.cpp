@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -32,8 +32,10 @@
 namespace owl {
   
   UserGeomGroup::UserGeomGroup(Context *const context,
-                               size_t numChildren)
-    : GeomGroup(context,numChildren)
+                               size_t numChildren,
+                               unsigned int _buildFlags)
+    : GeomGroup(context,numChildren),
+    buildFlags( (_buildFlags > 0) ? _buildFlags : defaultBuildFlags)
   {}
 
   void UserGeomGroup::buildOrRefit(bool FULL_REBUILD)
@@ -74,11 +76,14 @@ namespace owl {
 
     if (!FULL_REBUILD && dd.bvhMemory.empty())
       throw std::runtime_error("trying to refit an accel struct that has not been previously built");
-    // // assert("check does not yet exist" && dd.traversable == 0);
-    // if (FULL_REBUILD)
-    //   assert("check does not yet exist on first build " && dd.bvhMemory.empty());
-    // else
-    //   assert("check DOES exist on first build " && !dd.bvhMemory.empty());
+
+    if (!FULL_REBUILD && !(buildFlags & OPTIX_BUILD_FLAG_ALLOW_UPDATE))
+      throw std::runtime_error("trying to refit an accel struct that was not built with OPTIX_BUILD_FLAG_ALLOW_UPDATE");
+
+    if (FULL_REBUILD) {
+      dd.memFinal = 0;
+      dd.memPeak = 0;
+    }
       
     SetActiveGPU forLifeTime(device);
     LOG("building user accel over "
@@ -93,11 +98,11 @@ namespace owl {
        sizeof(maxPrimsPerGAS));
     
     // ==================================================================
-    // create triangle inputs
+    // create user geom inputs
     // ==================================================================
     //! the N build inputs that go into the builder
     std::vector<OptixBuildInput> userGeomInputs(geometries.size());
-    /*! *arrays* of the vertex pointers - the buildinputs cointina
+    /*! *arrays* of the vertex pointers - the buildinputs contain
      *pointers* to the pointers, so need a temp copy here */
     std::vector<CUdeviceptr> boundsPointers(geometries.size());
 
@@ -113,16 +118,16 @@ namespace owl {
 
       sumPrims += child->primCount;
       if (sumPrims > maxPrimsPerGAS) 
-        throw std::runtime_error("number of prim in user geom group exceeds "
-                                 "OptiX's MAX_PRIMITIVES_PER_GAS limit");
+        OWL_RAISE("number of prim in user geom group exceeds "
+                  "OptiX's MAX_PRIMITIVES_PER_GAS limit");
 
       UserGeom::DeviceData &ugDD = child->getDD(device);
       
       CUdeviceptr     &d_bounds = boundsPointers[childID];
       OptixBuildInput &userGeomInput = userGeomInputs[childID];
 
-      assert("user geom has valid bounds buffer"
-             && ugDD.internalBufferForBoundsProgram.alloced());
+      assert("user geom is either empty, or has valid bounds buffer"
+             && ((child->primCount == 0) || ugDD.internalBufferForBoundsProgram.alloced()));
       d_bounds = (CUdeviceptr)ugDD.internalBufferForBoundsProgram.get();
       
       userGeomInput.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
@@ -131,7 +136,7 @@ namespace owl {
 #else
       auto &aa = userGeomInput.aabbArray;
 #endif
-      aa.aabbBuffers   = &d_bounds;
+      aa.aabbBuffers   = (child->primCount == 0) ? nullptr : &d_bounds;
       aa.numPrimitives = (uint32_t)child->primCount;
       aa.strideInBytes = sizeof(box3f);
       aa.primitiveIndexOffset = 0;
@@ -159,12 +164,8 @@ namespace owl {
     // first: compute temp memory for bvh
     // ------------------------------------------------------------------
     OptixAccelBuildOptions accelOptions = {};
-    accelOptions.buildFlags             =
-      // OPTIX_BUILD_FLAG_PREFER_FAST_BUILD
-      OPTIX_BUILD_FLAG_ALLOW_UPDATE
-      |
-      OPTIX_BUILD_FLAG_PREFER_FAST_TRACE
-      ;
+    accelOptions.buildFlags = this->buildFlags;
+
     accelOptions.motionOptions.numKeys  = 1;
     if (FULL_REBUILD)
       accelOptions.operation            = OPTIX_BUILD_OPERATION_BUILD;
@@ -186,6 +187,15 @@ namespace owl {
     // compacted size in
     // ------------------------------------------------------------------
       
+    const size_t tempSize
+        = FULL_REBUILD
+        ? blasBufferSizes.tempSizeInBytes
+        : blasBufferSizes.tempUpdateSizeInBytes;
+    LOG("starting to build/refit "
+        << prettyNumber(userGeomInputs.size()) << " user geoms, "
+        << prettyNumber(blasBufferSizes.outputSizeInBytes) << "B in output and "
+        << prettyNumber(tempSize) << "B in temp data");
+
     // temp memory:
     DeviceMemory tempBuffer;
     tempBuffer.alloc
@@ -193,9 +203,98 @@ namespace owl {
        ? blasBufferSizes.tempSizeInBytes
        : blasBufferSizes.tempUpdateSizeInBytes);
 
-    if (FULL_REBUILD)
-      // alloc only on first rebuild
-      dd.bvhMemory.alloc(blasBufferSizes.outputSizeInBytes);
+    if (FULL_REBUILD) {
+      dd.memPeak += tempBuffer.size();
+    }
+
+    const bool allowCompaction = (buildFlags & OPTIX_BUILD_FLAG_ALLOW_COMPACTION);
+
+    // Optional buffers only used when compaction is allowed
+    DeviceMemory outputBuffer;
+    DeviceMemory compactedSizeBuffer;
+
+    // Allocate output buffer for initial build
+    if (FULL_REBUILD) {
+      if (allowCompaction) {
+        outputBuffer.alloc(blasBufferSizes.outputSizeInBytes);
+        dd.memPeak += outputBuffer.size();
+      } else {
+        dd.bvhMemory.alloc(blasBufferSizes.outputSizeInBytes);
+        dd.memPeak += dd.bvhMemory.size();
+        dd.memFinal = dd.bvhMemory.size();
+      }
+    }
+
+    // Build or refit
+
+    if (FULL_REBUILD && allowCompaction) {
+
+      compactedSizeBuffer.alloc(sizeof(uint64_t));
+      dd.memPeak += compactedSizeBuffer.size();
+
+      OptixAccelEmitDesc emitDesc;
+      emitDesc.type = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
+      emitDesc.result = (CUdeviceptr)compactedSizeBuffer.get();
+
+      OPTIX_CHECK(optixAccelBuild(optixContext,
+                                  /* todo: stream */0,
+                                  &accelOptions,
+                                  // array of build inputs:
+                                  userGeomInputs.data(),
+                                  (uint32_t)userGeomInputs.size(),
+                                  // buffer of temp memory:
+                                  (CUdeviceptr)tempBuffer.get(),
+                                  tempBuffer.size(),
+                                  // where we store initial, uncomp bvh:
+                                  (CUdeviceptr)outputBuffer.get(),
+                                  outputBuffer.size(),
+                                  /* the dd.traversable we're building: */ 
+                                  &dd.traversable,
+                                  /* we're also querying compacted size: */
+                                  &emitDesc,1u
+                                  ));
+    } else {
+      OPTIX_CHECK(optixAccelBuild(optixContext,
+                                  /* todo: stream */0,
+                                  &accelOptions,
+                                  // array of build inputs:
+                                  userGeomInputs.data(),
+                                  (uint32_t)userGeomInputs.size(),
+                                  // buffer of temp memory:
+                                  (CUdeviceptr)tempBuffer.get(),
+                                  tempBuffer.size(),
+                                  // where we store initial, uncomp bvh:
+                                  (CUdeviceptr)dd.bvhMemory.get(),
+                                  dd.bvhMemory.size(),
+                                  /* the dd.traversable we're building: */ 
+                                  &dd.traversable,
+                                  /* not querying anything */
+                                  nullptr,0
+                                  ));
+    }
+    OWL_CUDA_SYNC_CHECK();
+
+    // ==================================================================
+    // perform compaction
+    // ==================================================================
+    
+    if (FULL_REBUILD && allowCompaction) {
+      // download builder's compacted size from device
+      uint64_t compactedSize;
+      compactedSizeBuffer.download(&compactedSize);
+      
+      dd.bvhMemory.alloc(compactedSize);
+      // ... and perform compaction
+      OPTIX_CALL(AccelCompact(device->optixContext,
+                              /*TODO: stream:*/0,
+                              // OPTIX_COPY_MODE_COMPACT,
+                              dd.traversable,
+                              (CUdeviceptr)dd.bvhMemory.get(),
+                              dd.bvhMemory.size(),
+                              &dd.traversable));
+      dd.memPeak += dd.bvhMemory.size();
+      dd.memFinal = dd.bvhMemory.size();
+    }
     OPTIX_CHECK(optixAccelBuild(optixContext,
                                 /* todo: stream */0,
                                 &accelOptions,
@@ -214,13 +313,11 @@ namespace owl {
                                 nullptr,0u
                                 ));
       
-    CUDA_SYNC_CHECK();
+    OWL_CUDA_SYNC_CHECK();
 
     // ==================================================================
     // finish - clean up
     // ==================================================================
-
-    tempBuffer.free();
 
     LOG_OK("successfully built user geom group accel");
 
@@ -236,8 +333,10 @@ namespace owl {
       if (ugDD.internalBufferForBoundsProgram.alloced())
         ugDD.internalBufferForBoundsProgram.free();
     }
+    if (FULL_REBUILD)
+      dd.memPeak += sumBoundsMem;
 
-    CUDA_SYNC_CHECK();
+    OWL_CUDA_SYNC_CHECK();
   }
     
 } // ::owl

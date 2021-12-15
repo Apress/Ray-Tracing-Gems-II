@@ -336,11 +336,18 @@ namespace owl {
 
     /*! vector cross product */
     template<typename T>
+    inline __both__ T dot(const vec_t<T,2> &a, const vec_t<T,2> &b)
+    {
+      return a.x*b.x + a.y*b.y;
+    }
+
+    /*! vector cross product */
+    template<typename T>
     inline __both__ T dot(const vec_t<T,3> &a, const vec_t<T,3> &b)
     {
       return a.x*b.x + a.y*b.y + a.z*b.z;
     }
-
+    
     /*! vector cross product */
     template<typename T>
     inline __both__ vec_t<T,3> normalize(const vec_t<T,3> &v)
@@ -406,7 +413,17 @@ namespace owl {
     _define_vec_types(double,d);
   
 #undef _define_vec_types
-  
+
+    inline __both__ vec_t<bool,3> ge(const vec3f &a, const vec3f &b)
+    { return { a.x >= b.x, a.y >= b.y, a.z >= b.z }; }
+    
+    inline __both__ vec_t<bool,3> lt(const vec3f &a, const vec3f &b)
+    { return { a.x < b.x, a.y < b.y, a.z < b.z }; }
+
+    inline __both__ bool any(vec_t<bool,3> v)
+    { return v.x | v.y | v.z; }
+    
+    
   } // ::owl::common
 
   using namespace owl::common;

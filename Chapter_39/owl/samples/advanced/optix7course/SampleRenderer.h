@@ -23,7 +23,7 @@
 #endif
 #include <cuda_gl_interop.h>
 // our own classes, partly shared between host and device
-#include "CUDABuffer.h"
+#include "owl/owl_host.h"
 #include "LaunchParams.h"
 #include "Model.h"
 

@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2018-2019 Ingo Wald                                            //
+// Copyright 2018-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -90,11 +90,7 @@ namespace osc {
       OWLViewer::key(key,where);
     }
     
-    // vec2i                 fbSize;
-    // GLuint                fbTexture {0};
-    // cudaGraphicsResource_t cuDisplayTexture;
     SampleRenderer        sample;
-    // std::vector<uint32_t> pixels;
   };
   
   
@@ -104,9 +100,15 @@ namespace osc {
   {
     std::string inFileName = 
 #ifdef _WIN32
+#ifdef OWL_BUILDING_ALL_SAMPLES
+      // on windows, when building the whole project (including the
+      // samples) with VS, the executable's location is different
+      "../../samples/advanced/optix7course/models/sponza.obj"
+#else
       // on windows, visual studio creates _two_ levels of build dir
       // (x86/Release)
       "../../models/sponza.obj"
+#endif
 #else
       // on linux, common practice is to have ONE level of build dir
       // (say, <project>/build/)...

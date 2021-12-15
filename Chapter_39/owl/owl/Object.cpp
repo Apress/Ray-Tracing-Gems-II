@@ -134,7 +134,7 @@ namespace owl {
       
     case OWL_BUFFER:
       //      return sizeof();
-      throw "device code for OWL_BUFFER type not yet implemented";
+      OWL_RAISE("device code for OWL_BUFFER type not yet implemented");
     case OWL_BUFFER_POINTER:
       return sizeof(void *);
     case OWL_GROUP:
@@ -142,9 +142,10 @@ namespace owl {
     case OWL_DEVICE:
       return sizeof(int32_t);
     default:
-      throw std::runtime_error(std::string(__PRETTY_FUNCTION__)
-                               +": not yet implemented for type #"
-                               +std::to_string((int)type));
+      OWL_RAISE(std::string(__PRETTY_FUNCTION__)
+                +": not yet implemented for type #"
+                +std::to_string((int)type));
+      return 0;
     }
   }
 
@@ -289,9 +290,10 @@ namespace owl {
         return "OWL_USER_TYPE(sz="
           +std::to_string((size_t)type-(size_t)OWL_USER_TYPE_BEGIN)+")";
       else
-        throw std::runtime_error(std::string(__PRETTY_FUNCTION__)
-                                 +": not yet implemented for type #"
-                                 +std::to_string((int)type));
+        OWL_RAISE(std::string(__PRETTY_FUNCTION__)
+                  +": not yet implemented for type #"
+                  +std::to_string((int)type));
+      return "";
     }
   }
 
@@ -312,7 +314,7 @@ namespace owl {
   void Object::createDeviceData(const std::vector<DeviceContext::SP> &devices)
   {
     if (!deviceData.empty())
-      throw std::runtime_error
+      OWL_RAISE
         ("trying to create device data on object "+toString()
          +", but it already exists!?");
     assert(deviceData.empty());

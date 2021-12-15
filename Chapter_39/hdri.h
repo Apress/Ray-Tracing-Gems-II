@@ -4,8 +4,8 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "samples/common/3rdParty/stb/stb_image.h"
-#include "samples/common/3rdParty/stb/stb_image_write.h"
+#include "./owl/3rdParty/stb_image/stb/stb_image.h"
+#include "./owl/3rdParty/stb_image/stb/stb_image_write.h"
 #include "tinyexr.h"
 
 namespace cdf {

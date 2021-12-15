@@ -26,7 +26,8 @@ namespace owl {
   struct UserGeomGroup : public GeomGroup {
 
     UserGeomGroup(Context *const context,
-                   size_t numChildren);
+                   size_t numChildren,
+                   unsigned int buildFlags);
     virtual std::string toString() const { return "UserGeomGroup"; }
 
     /*! build() and refit() share most of their code; this functoin
@@ -40,6 +41,14 @@ namespace owl {
     /*! low-level accel structure builder for given device */
     template<bool FULL_REBUILD>
     void buildAccelOn(const DeviceContext::SP &device);
+
+    constexpr static unsigned int defaultBuildFlags = 
+        OPTIX_BUILD_FLAG_PREFER_FAST_TRACE |
+        OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
+
+    protected:
+    const unsigned int buildFlags;
+
   };
 
 } // ::owl

@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -47,21 +47,25 @@ namespace owl {
   void APIContext::releaseAll()
   {
     LOG("#owl: context is dying; number of API handles (other than context itself) "
-        << "that have not yet been released: "
-        << (activeHandles.size()-1));
+        << "that have not yet been released (incl this context): "
+        << (activeHandles.size()));
     for (auto handle : activeHandles)
       LOG(" - " + handle->toString());
 
-    // create a COPY of the handles we need to destroy, else
-    // destroying the handles modifies the std::set while we're
-    // iterating through it!
-    std::set<APIHandle *> stillActiveHandles = activeHandles;
-    for (auto handle : stillActiveHandles)  {
-      assert(handle);
-      delete handle;
+    // create one reference that won't get removed when removing all API handles (caller should actually have one, but just in case)
+    std::shared_ptr<APIContext> self = shared_from_this()->as<APIContext>();
+    std::vector<APIHandle*> handlesToFree;
+    for (auto &it : activeHandles) {
+        if (it && it->object //&& it->object.get() != this
+            ) {
+            it->object = {};
+            it->context = {};
+            handlesToFree.push_back(it);
+        }
     }
-
-    assert(activeHandles.empty());
+    activeHandles.clear();
+    for (auto handle : handlesToFree)
+      delete handle;
   }
   
   void APIContext::track(APIHandle *object)

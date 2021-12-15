@@ -14,23 +14,22 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${PROJECT_SOURCE_DIR}/owl)
+embed_ptx(
+  OUTPUT_TARGET
+    test02-group-rebuilds-embedded-ptx
+  PTX_TARGET
+    test02-group-rebuilds-ptx
+  SOURCES
+    deviceCode.cu
+)
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
+target_link_libraries(test02-group-rebuilds-ptx PRIVATE owl::owl)
 
-add_executable(test02-group-rebuilds
-  hostCode.cpp
-  ${ptxCode}
-  )
-
+add_executable(test02-group-rebuilds hostCode.cpp)
 target_link_libraries(test02-group-rebuilds
-  ${OWL_LIBRARIES}
-  )
-
-add_test(test02-group-rebuilds
-  ${CMAKE_BINARY_DIR}/test02-group-rebuilds)
-
-
-
+  PRIVATE
+    test02-group-rebuilds-embedded-ptx
+    owl::owl
+    stb_image
+)
+add_test(test02-group-rebuilds ${CMAKE_BINARY_DIR}/test02-group-rebuilds)

@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2018-2019 Ingo Wald                                            //
+// Copyright 2018-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -43,8 +43,6 @@ namespace std {
 
 /*! \namespace osc - Optix Siggraph Course */
 namespace osc {
-  
-
 
   /*! find vertex with given position, normal, texcoord, and return
       its vertex ID, or, if it doesn't exit, add it to the mesh, and
@@ -150,14 +148,14 @@ namespace osc {
                          objFile.c_str(),
                          modelDir.c_str(),
                          /* triangulate */true);
-    if (!readOK) {
+    if (!readOK) 
       throw std::runtime_error("Could not read OBJ model from "+objFile+" : "+err);
-    }
 
     if (materials.empty())
       throw std::runtime_error("could not parse materials ...");
 
     std::cout << "Done loading obj file - found " << shapes.size() << " shapes with " << materials.size() << " materials" << std::endl;
+    std::map<std::string, int>      knownTextures;
     for (int shapeID=0;shapeID<(int)shapes.size();shapeID++) {
       tinyobj::shape_t &shape = shapes[shapeID];
 
@@ -166,7 +164,6 @@ namespace osc {
         materialIDs.insert(faceMatID);
       
       std::map<tinyobj::index_t,int> knownVertices;
-      std::map<std::string,int>      knownTextures;
       
       for (int materialID : materialIDs) {
         TriangleMesh *mesh = new TriangleMesh;
@@ -209,7 +206,7 @@ namespace osc {
             if (idx.x < 0 || idx.x >= (int)mesh->vertex.size() ||
                 idx.y < 0 || idx.y >= (int)mesh->vertex.size() ||
                 idx.z < 0 || idx.z >= (int)mesh->vertex.size())
-              { PING; PRINT(idx); PRINT(mesh->vertex.size()); }
+              throw std::runtime_error("invalid triangle indices");
           }
           model->meshes.push_back(mesh);
         }

@@ -14,13 +14,23 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${PROJECT_SOURCE_DIR}/)
-# for STB image read/write
-include_directories(${PROJECT_SOURCE_DIR}/samples/common/3rdParty)
-# public API:
-include_directories(${OWL_INCLUDES})
-
-file(GLOB tests RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "t??-*")
+file(GLOB tests RELATIVE ${CMAKE_CURRENT_LIST_DIR} "t??-*")
 foreach(test ${tests})
   add_subdirectory(${test})
 endforeach()
+
+include(ExternalProject)
+string(REPLACE ";" "|" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}")
+ExternalProject_Add(owl_as_subdirectory
+  PREFIX owl_as_submodule
+  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/owl-as-subdirectory
+  LIST_SEPARATOR | # Use the alternate list separator substituted above
+  CMAKE_ARGS
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    -DCMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}
+    -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+  INSTALL_COMMAND ""
+  BUILD_ALWAYS OFF
+)

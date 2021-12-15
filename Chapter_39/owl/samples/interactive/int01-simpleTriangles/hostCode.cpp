@@ -33,7 +33,7 @@
   std::cout << "#owl.sample(main): " << message << std::endl;   \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 const int NUM_VERTICES = 8;
 vec3f vertices[NUM_VERTICES] =
@@ -73,13 +73,13 @@ const float init_cosFovy = 0.66f;
 struct Viewer : public owl::viewer::OWLViewer
 {
   Viewer();
-  
+
   /*! gets called whenever the viewer needs us to re-render out widget */
   void render() override;
-  
+
       /*! window notifies us that we got resized. We HAVE to override
           this to know our actual render dimensions, and get pointer
-          to the device frame buffer that the viewer cated for us */     
+          to the device frame buffer that the viewer cated for us */
   void resize(const vec2i &newSize) override;
 
   /*! this function gets called whenever any camera manipulator
@@ -91,7 +91,7 @@ struct Viewer : public owl::viewer::OWLViewer
   OWLContext context { 0 };
 };
 
-/*! window notifies us that we got resized */     
+/*! window notifies us that we got resized */
 void Viewer::resize(const vec2i &newSize)
 {
   OWLViewer::resize(newSize);
@@ -132,8 +132,8 @@ Viewer::Viewer()
 {
   // create a context on the first device:
   context = owlContextCreate(nullptr,1);
-  OWLModule module = owlModuleCreate(context,ptxCode);
-  
+  OWLModule module = owlModuleCreate(context,deviceCode_ptx);
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -172,16 +172,16 @@ Viewer::Viewer()
 
   OWLGeom trianglesGeom
     = owlGeomCreate(context,trianglesGeomType);
-  
+
   owlTrianglesSetVertices(trianglesGeom,vertexBuffer,
                           NUM_VERTICES,sizeof(vec3f),0);
   owlTrianglesSetIndices(trianglesGeom,indexBuffer,
                          NUM_INDICES,sizeof(vec3i),0);
-  
+
   owlGeomSetBuffer(trianglesGeom,"vertex",vertexBuffer);
   owlGeomSetBuffer(trianglesGeom,"index",indexBuffer);
   owlGeomSet3f(trianglesGeom,"color",owl3f{0,1,0});
-  
+
   // ------------------------------------------------------------------
   // the group/accel for that mesh
   // ------------------------------------------------------------------
@@ -191,14 +191,14 @@ Viewer::Viewer()
   OWLGroup world
     = owlInstanceGroupCreate(context,1,&trianglesGroup);
   owlGroupBuildAccel(world);
-  
+
 
   // ##################################################################
   // set miss and raygen program required for SBT
   // ##################################################################
 
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[]
     = {
@@ -210,7 +210,7 @@ Viewer::Viewer()
   OWLMissProg missProg
     = owlMissProgCreate(context,module,"miss",sizeof(MissProgData),
                         missProgVars,-1);
-  
+
   // ----------- set variables  ----------------------------
   owlMissProgSet3f(missProg,"color0",owl3f{.8f,0.f,0.f});
   owlMissProgSet3f(missProg,"color1",owl3f{.8f,.8f,.8f});
@@ -237,11 +237,11 @@ Viewer::Viewer()
                       rayGenVars,-1);
   /* camera and frame buffer get set in resiez() and cameraChanged() */
   owlRayGenSetGroup (rayGen,"world",        world);
-  
+
   // ##################################################################
   // build *SBT* required to trace the groups
   // ##################################################################
-  
+
   owlBuildPrograms(context);
   owlBuildPipeline(context);
   owlBuildSBT(context);

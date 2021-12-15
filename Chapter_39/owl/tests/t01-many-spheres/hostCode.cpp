@@ -66,7 +66,7 @@ void createScene(int N)
                                      Lambertian{vec3f(0.5f, 0.5f, 0.5f)}});
       }
 }
-  
+
 int main(int ac, char **av)
 {
   // ##################################################################
@@ -76,19 +76,19 @@ int main(int ac, char **av)
   LOG("ll example '" << av[0] << "' starting up");
 
   int N = 500;
-  
+
   LOG("creating the scene ...");
   createScene(N);
   LOG_OK("created scene:");
   LOG_OK(" num lambertian spheres: " << lambertianSpheres.size());
-  
+
   // ##################################################################
   // init owl
   // ##################################################################
 
   OWLContext context = owlContextCreate();
   OWLModule  module  = owlModuleCreate(context,ptxCode);
-  
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -139,7 +139,7 @@ int main(int ac, char **av)
   // // ##################################################################
   // // set up all *ACCELS* we need to trace into those groups
   // // ##################################################################
-  
+
 #if 1
   OWLGroup grp
     = owlUserGeomGroupCreate(context,1,&lambertianSpheresGeom);
@@ -158,9 +158,9 @@ int main(int ac, char **av)
   // ##################################################################
   // set miss and raygen programs
   // ##################################################################
-  
+
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[] = {
     { /* sentinel to mark end of list */ }
@@ -170,7 +170,7 @@ int main(int ac, char **av)
     = owlMissProgCreate(context,module,"miss",sizeof(MissProgData),
                         missProgVars,-1);
   owlMissProgSet(context,0,missProg);
-  
+
   // ........... set variables  ............................
   /* nothing to set */
 
@@ -224,7 +224,7 @@ int main(int ac, char **av)
   owlRayGenSet3f    (rayGen,"camera.llc",   (const owl3f&)lower_left_corner);
   owlRayGenSet3f    (rayGen,"camera.horiz", (const owl3f&)horizontal);
   owlRayGenSet3f    (rayGen,"camera.vert",  (const owl3f&)vertical);
-  
+
   // ##################################################################
   // build *SBT* required to trace the groups
   // ##################################################################
@@ -238,10 +238,10 @@ int main(int ac, char **av)
   // ##################################################################
   // now that everything is ready: launch it ....
   // ##################################################################
-  
+
   LOG("launching ...");
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
-  
+
   LOG("done with launch, writing picture ...");
   // for host pinned mem it doesn't matter which device we query...
   const uint32_t *fb
@@ -253,9 +253,9 @@ int main(int ac, char **av)
   // ##################################################################
   // and finally, clean up
   // ##################################################################
-  
+
   LOG("destroying devicegroup ...");
   owlContextDestroy(context);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }

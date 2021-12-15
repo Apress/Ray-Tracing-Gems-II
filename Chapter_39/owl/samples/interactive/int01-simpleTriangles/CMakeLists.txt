@@ -14,16 +14,18 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-add_executable(int01-simpleTriangles
-  hostCode.cpp
-  ${ptxCode}
-  )
+embed_ptx(
+  OUTPUT_TARGET
+    int01-simpleTriangles-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
+
+add_executable(int01-simpleTriangles hostCode.cpp)
 target_link_libraries(int01-simpleTriangles
-  ${OWL_LIBRARIES}
-  ${OWL_VIEWER_LIBRARIES}
-  )
-
-
+  PRIVATE
+    int01-simpleTriangles-ptx
+    owl_viewer
+)

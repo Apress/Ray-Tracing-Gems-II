@@ -24,7 +24,7 @@ namespace owl {
   struct TrianglesGeomGroup : public GeomGroup {
 
     /*! constructor - passthroughto parent class */
-    TrianglesGeomGroup(Context *const context, size_t numChildren);
+    TrianglesGeomGroup(Context *const context, size_t numChildren, unsigned int buildFlags);
     
     /*! pretty-printer, for printf-debugging */
     std::string toString() const override;
@@ -39,6 +39,13 @@ namespace owl {
     /*! low-level accel structure builder for given device */
     template<bool FULL_REBUILD>
     void buildAccelOn(const DeviceContext::SP &device);
+
+    constexpr static unsigned int defaultBuildFlags = 
+        OPTIX_BUILD_FLAG_PREFER_FAST_TRACE |
+        OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
+
+    protected:
+    const unsigned int buildFlags;
   };
 
 } // ::owl

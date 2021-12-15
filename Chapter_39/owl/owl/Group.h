@@ -44,6 +44,12 @@ namespace owl {
       /*! device memory that keeps the final, possibly compacted, BVH
           memory */
       DeviceMemory           bvhMemory;
+
+      //! memory used for the BVH, last time it was built.
+      size_t memFinal = 0;
+      
+      //! peak memory uesd during building, last time it was built.
+      size_t memPeak = 0;
     };
 
     /*! constructor, that registers this group in the context's registry */
@@ -72,7 +78,20 @@ namespace owl {
 
     /*! returns the (device-specific) optix traversable handle to traverse this group */
     inline OptixTraversableHandle getTraversable(const DeviceContext::SP &device) const;
-    
+
+    /*! returns the (device) memory used for this group's acceleration
+      structure (but _excluding_ the memory for the geometries
+      itself). "memFinal" is how much memory is used for the _final_
+      version of the BVH (after it is done building), "memPeak" is peak
+      memory used during construction. passing a NULL pointer to any
+      value is valid; these values will get ignored. */
+    void getAccelSize(size_t &memFinal, size_t &memPeak)
+    {
+      DeviceData &dd = deviceData[0]->as<DeviceData>();
+      memFinal = dd.memFinal;
+      memPeak  = dd.memPeak;
+    }
+
     /*! bounding box for t=0 and t=1; for motion blur. */
     box3f bounds[2];
   };

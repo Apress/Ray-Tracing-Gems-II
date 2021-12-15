@@ -30,7 +30,9 @@
 #include <math.h>
 #include <cmath>
 #include <algorithm>
+#include <sstream>
 #ifdef __GNUC__
+#include <execinfo.h>
 #include <sys/time.h>
 #endif
 
@@ -47,6 +49,9 @@
 #endif
 #endif
 
+#if !defined(WIN32)
+#include <signal.h>
+#endif
 
 #if defined(_MSC_VER)
 #  define OWL_DLL_EXPORT __declspec(dllexport)
@@ -108,7 +113,51 @@
 #define MAYBE_UNUSED
 #endif
 
+namespace detail {
+inline static std::string backtrace()
+{
+#ifdef __GNUC__
+    static const int max_frames = 16;
 
+    void* buffer[max_frames] = { 0 };
+    int cnt = ::backtrace(buffer,max_frames);
+
+    char** symbols = backtrace_symbols(buffer,cnt);
+
+    if (symbols) {
+      std::stringstream str;
+      for (int n = 1; n < cnt; ++n) // skip the 1st entry (address of this function)
+      {
+        str << symbols[n] << '\n';
+      }
+      free(symbols);
+      return str.str();
+    }
+    return "";
+#else
+    return "not implemented yet";
+#endif
+}
+
+inline void owlRaise_impl(std::string str)
+{
+  fprintf(stderr,"%s\n",str.c_str());
+#ifdef WIN32
+  if (IsDebuggerPresent())
+    DebugBreak();
+  else
+    throw std::runtime_error(str);
+#else
+#ifndef NDEBUG
+  std::string bt = ::detail::backtrace();
+  fprintf(stderr,"%s\n",bt.c_str());
+#endif
+  raise(SIGINT);
+#endif
+}
+}
+
+#define OWL_RAISE(MSG) ::detail::owlRaise_impl(MSG);
 
 
 #define OWL_NOTIMPLEMENTED throw std::runtime_error(std::string(__PRETTY_FUNCTION__)+" not implemented")

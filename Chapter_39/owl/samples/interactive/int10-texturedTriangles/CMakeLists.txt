@@ -1,5 +1,5 @@
 # ======================================================================== #
-# Copyright 2020 Ingo Wald                                                 #
+# Copyright 2020-2021 Ingo Wald                                            #
 #                                                                          #
 # Licensed under the Apache License, Version 2.0 (the "License");          #
 # you may not use this file except in compliance with the License.         #
@@ -14,16 +14,18 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-add_executable(int10-texturedTriangles
-  hostCode.cpp
-  ${ptxCode}
-  )
+embed_ptx(
+  OUTPUT_TARGET
+    int10-texturedTriangles-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
+
+add_executable(int10-texturedTriangles hostCode.cpp)
 target_link_libraries(int10-texturedTriangles
-  ${OWL_LIBRARIES}
-  ${OWL_VIEWER_LIBRARIES}
-  )
-
-
+  PRIVATE
+    int10-texturedTriangles-ptx
+    owl_viewer
+)

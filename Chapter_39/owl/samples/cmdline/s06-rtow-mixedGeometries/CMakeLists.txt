@@ -14,23 +14,21 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${PROJECT_SOURCE_DIR}/owl)
+embed_ptx(
+  OUTPUT_TARGET
+    sample06-rtow-mixedGeometries-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-
-add_executable(sample06-rtow-mixedGeometries
-  hostCode.cpp
-  ${ptxCode}
-  )
-
+add_executable(sample06-rtow-mixedGeometries hostCode.cpp)
 target_link_libraries(sample06-rtow-mixedGeometries
-  ${OWL_LIBRARIES}
-  )
-
+  PRIVATE
+    sample06-rtow-mixedGeometries-ptx
+    owl::owl
+    stb_image
+)
 add_test(sample06-rtow-mixedGeometries
   ${CMAKE_BINARY_DIR}/sample06-rtow-mixedGeometries)
-
-
-

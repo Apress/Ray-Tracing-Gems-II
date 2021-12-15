@@ -22,16 +22,18 @@
 # time to cycle through those texture sets. Ie, each box stores one
 # one buffer of N buffers of 6 textures each
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-add_executable(int12-switchingTextureSets
-  hostCode.cpp
-  ${ptxCode}
-  )
+embed_ptx(
+  OUTPUT_TARGET
+    int12-switchingTextureSets-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
+
+add_executable(int12-switchingTextureSets hostCode.cpp)
 target_link_libraries(int12-switchingTextureSets
-  ${OWL_LIBRARIES}
-  ${OWL_VIEWER_LIBRARIES}
-  )
-
-
+  PRIVATE
+    int12-switchingTextureSets-ptx
+    owl_viewer
+)

@@ -36,7 +36,7 @@
   std::cout << "#owl.sample(main): " << message << std::endl;    \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 const vec2i init_fbSize(1600,800);
 const vec3f init_lookFrom(13, 2, 3);
@@ -123,7 +123,7 @@ void addRandomBox(BoxArray &boxes,
   xfm = owl::affine3f(owl::linear3f::rotate(U,rnd())) * xfm;
   xfm = owl::affine3f(owl::linear3f::scale(.7f*size)) * xfm;
   xfm = owl::affine3f(owl::affine3f::translate(center)) * xfm;
-  
+
   const int startIndex = (int)boxes.vertices.size();
   for (int i=0;i<NUM_VERTICES;i++)
     boxes.vertices.push_back(owl::xfmPoint(xfm,unitBoxVertices[i]));
@@ -136,7 +136,7 @@ void createScene()
 {
   lambertianSpheres.push_back({Sphere{vec3f(0.f, -1000.0f, -1.f), 1000.f},
         Lambertian{vec3f(0.5f, 0.5f, 0.5f)}});
-  
+
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
       float choose_mat = rnd();
@@ -173,7 +173,7 @@ void createScene()
   metalSpheres.push_back({Sphere{vec3f(4.f, 1.f, 0.f), 1.f},
         Metal{vec3f(0.7f, 0.6f, 0.5f), 0.0f}});
 }
-  
+
 
 
 
@@ -181,19 +181,19 @@ void createScene()
 struct Viewer : public owl::viewer::OWLViewer
 {
   Viewer();
-  
+
   /*! gets called whenever the viewer needs us to re-render out widget */
   void render() override;
-  
+
       /*! window notifies us that we got resized. We HAVE to override
           this to know our actual render dimensions, and get pointer
-          to the device frame buffer that the viewer cated for us */     
+          to the device frame buffer that the viewer cated for us */
   void resize(const vec2i &newSize) override;
 
   /*! this function gets called whenever any camera manipulator
     updates the camera. gets called AFTER all values have been updated */
   void cameraChanged() override;
-  
+
   OWLRayGen  rayGen  { 0 };
   OWLContext context { 0 };
   OWLGroup   world   { 0 };
@@ -227,7 +227,7 @@ void Viewer::cameraChanged()
   const vec3f vertical = 2.0f*half_height*focusDist*v;
 
   accumID = 0;
-  
+
   // ----------- set variables  ----------------------------
   owlRayGenSetGroup (rayGen,"world",        world);
   owlRayGenSet3f    (rayGen,"camera.org",   (const owl3f&)origin);
@@ -245,18 +245,18 @@ void Viewer::render()
 }
 
 
-/*! window notifies us that we got resized */     
+/*! window notifies us that we got resized */
 void Viewer::resize(const vec2i &newSize)
 {
   OWLViewer::resize(newSize);
   cameraChanged();
-  
+
   if (accumBuffer)
     owlBufferResize(accumBuffer,newSize.x*newSize.y*sizeof(float4));
   else
     accumBuffer = owlDeviceBufferCreate(context,OWL_FLOAT4,
                                         newSize.x*newSize.y,nullptr);
-  
+
   owlRayGenSetBuffer(rayGen,"accumBuffer",  accumBuffer);
   owlRayGenSet1ul   (rayGen,"fbPtr",        (uint64_t)fbPointer);
   owlRayGenSet2i    (rayGen,"fbSize",       (const owl2i&)fbSize);
@@ -272,8 +272,8 @@ Viewer::Viewer()
   // ##################################################################
 
   context = owlContextCreate(nullptr,1);
-  OWLModule  module  = owlModuleCreate(context,ptxCode);
-  
+  OWLModule  module  = owlModuleCreate(context,deviceCode_ptx);
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -383,7 +383,7 @@ Viewer::Viewer()
                         lambertianBoxesGeomVars,-1);
   owlGeomTypeSetClosestHit(lambertianBoxesGeomType,0,
                            module,"LambertianBoxes");
-  
+
 
   // -------------------------------------------------------
   // make sure to do that *before* setting up the geometry, since the
@@ -404,7 +404,7 @@ Viewer::Viewer()
   LOG("building geometries ...");
 
   // ====================== SPHERES ======================
-  
+
   // ----------- metal -----------
   OWLBuffer metalSpheresBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(metalSpheres[0]),
@@ -435,7 +435,7 @@ Viewer::Viewer()
 
 
   // ====================== BOXES ======================
-  
+
   // ----------- metal -----------
   OWLBuffer metalMaterialsBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(metalBoxes.materials[0]),
@@ -460,7 +460,7 @@ Viewer::Viewer()
   owlGeomSetBuffer(metalBoxesGeom,"perBoxMaterial",metalMaterialsBuffer);
   owlGeomSetBuffer(metalBoxesGeom,"vertex",metalVerticesBuffer);
   owlGeomSetBuffer(metalBoxesGeom,"index",metalIndicesBuffer);
-  
+
   // ----------- lambertian -----------
   OWLBuffer lambertianMaterialsBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(lambertianBoxes.materials[0]),
@@ -485,7 +485,7 @@ Viewer::Viewer()
   owlGeomSetBuffer(lambertianBoxesGeom,"perBoxMaterial",lambertianMaterialsBuffer);
   owlGeomSetBuffer(lambertianBoxesGeom,"vertex",lambertianVerticesBuffer);
   owlGeomSetBuffer(lambertianBoxesGeom,"index",lambertianIndicesBuffer);
-  
+
   // ----------- dielectric -----------
   OWLBuffer dielectricMaterialsBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(dielectricBoxes.materials[0]),
@@ -510,7 +510,7 @@ Viewer::Viewer()
   owlGeomSetBuffer(dielectricBoxesGeom,"perBoxMaterial",dielectricMaterialsBuffer);
   owlGeomSetBuffer(dielectricBoxesGeom,"vertex",dielectricVerticesBuffer);
   owlGeomSetBuffer(dielectricBoxesGeom,"index",dielectricIndicesBuffer);
-  
+
   // ##################################################################
   // set up all *ACCELS* we need to trace into those groups
   // ##################################################################
@@ -552,9 +552,9 @@ Viewer::Viewer()
   // ##################################################################
   // set miss and raygen programs
   // ##################################################################
-  
+
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[] = {
     { /* sentinel to mark end of list */ }
@@ -564,7 +564,7 @@ Viewer::Viewer()
     = owlMissProgCreate(context,module,"miss",sizeof(MissProgData),
                         missProgVars,-1);
   owlMissProgSet(context,0,missProg);
-  
+
   // ........... set variables  ............................
   /* nothing to set */
 
@@ -589,7 +589,7 @@ Viewer::Viewer()
     = owlRayGenCreate(context,module,"rayGen",
                       sizeof(RayGenData),
                       rayGenVars,-1);
-  
+
   // ##################################################################
   // build *SBT* required to trace the groups
   // ##################################################################
@@ -625,9 +625,9 @@ int main(int ac, char **av)
   viewer.enableInspectMode(/* the big sphere in the middle: */
                            owl::box3f(vec3f(-1,0,-1),vec3f(1,2,1)));
   viewer.showAndRun();
-  
+
   LOG("destroying devicegroup ...");
   owlContextDestroy(viewer.context);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }

@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -115,9 +115,9 @@ namespace owl {
     cudaFree(0);
     
     int totalNumDevicesAvailable = 0;
-    cudaGetDeviceCount(&totalNumDevicesAvailable);
+    OWL_CUDA_CALL(GetDeviceCount(&totalNumDevicesAvailable));
     if (totalNumDevicesAvailable == 0)
-      throw std::runtime_error("#owl: no CUDA capable devices found!");
+      OWL_RAISE("#owl: no CUDA capable devices found!");
     LOG_OK("found " << totalNumDevicesAvailable << " CUDA device(s)");
 
 
@@ -142,12 +142,22 @@ namespace owl {
     // ------------------------------------------------------------------
     // init optix itself
     // ------------------------------------------------------------------
-#if OPTIX_VERSION >= 70100
+#if OPTIX_VERSION >= 70400
+    LOG("initializing optix 7.4");
+#elif OPTIX_VERSION >= 70300
+    LOG("initializing optix 7.3");
+#elif OPTIX_VERSION >= 70200
+    LOG("initializing optix 7.2");
+#elif OPTIX_VERSION >= 70100
     LOG("initializing optix 7.1");
 #else
     LOG("initializing optix 7");
 #endif
-    OPTIX_CHECK(optixInit());
+    static bool initialized = false;
+    if (!initialized) {
+      OPTIX_CHECK(optixInit());
+      initialized = true;
+    }
     
     // from here on, we need a non-empty list of requested device IDs
     assert(deviceIDs != nullptr && numDevices > 0);
@@ -174,7 +184,7 @@ namespace owl {
     // one device...
     // ------------------------------------------------------------------
     if (devices.empty())
-      throw std::runtime_error("fatal error - could not find/create any optix devices");
+      OWL_RAISE("fatal error - could not find/create any optix devices");
     
     LOG_OK("successfully created device group with " << devices.size() << " devices");
     return devices;
@@ -193,17 +203,30 @@ namespace owl {
     
     LOG(" - device: " << getDeviceName());
     
-    CUDA_CHECK(cudaSetDevice(cudaDeviceID));
-    CUDA_CHECK(cudaStreamCreate(&stream));
+    OWL_CUDA_CHECK(cudaSetDevice(cudaDeviceID));
+    OWL_CUDA_CHECK(cudaStreamCreate(&stream));
     
     CUresult  cuRes = cuCtxGetCurrent(&cudaContext);
     if (cuRes != CUDA_SUCCESS) 
-      throw std::runtime_error("Error querying current CUDA context...");
+      OWL_RAISE("Error querying current CUDA context...");
     
     OPTIX_CHECK(optixDeviceContextCreate(cudaContext, 0, &optixContext));
     OPTIX_CHECK(optixDeviceContextSetLogCallback
                 (optixContext,context_log_cb,this,4));
   }
+
+  DeviceContext::~DeviceContext()
+  {
+    destroyMissPrograms();
+    destroyRayGenPrograms();
+    destroyHitGroupPrograms();
+    destroyPrograms();
+    destroyPipeline();
+    
+    OPTIX_CHECK(optixDeviceContextDestroy(optixContext));
+    cudaStreamDestroy(stream);
+  }
+  
   
   /*! return CUDA's name string for given device */
   std::string DeviceContext::getDeviceName() const
@@ -236,16 +259,32 @@ namespace owl {
     // configure default module compile options
     // ------------------------------------------------------------------
   if (!debug) {
-    moduleCompileOptions.maxRegisterCount  = 50;
+    moduleCompileOptions.maxRegisterCount  = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT ;
     moduleCompileOptions.optLevel          = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
-    moduleCompileOptions.debugLevel        = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+#if OPTIX_VERSION >= 70400
+    // 7.4 no longer has 'lineinfo'
+    moduleCompileOptions.debugLevel        = OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL;
+#else
+    moduleCompileOptions.debugLevel        = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
+#endif
   } 
   else {
     std::cout << "WARNING: RUNNING OPTIX PROGRAMS IN -O0 DEBUG MODE!!!" << std::endl;
-    moduleCompileOptions.maxRegisterCount  = 50;
-    moduleCompileOptions.optLevel          = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
+    moduleCompileOptions.maxRegisterCount  = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT ;
+    moduleCompileOptions.optLevel          = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
+#if OPTIX_VERSION >= 70400
+    // 7.4 no longer has 'lineinfo'
+    moduleCompileOptions.debugLevel        = OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL;
+#else
     moduleCompileOptions.debugLevel        = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
+#endif
   }
+
+#if OPTIX_VERSION >= 70200
+    // Bound values of launch params
+    moduleCompileOptions.boundValues = parent->boundLaunchParamValues.data();
+    moduleCompileOptions.numBoundValues = (unsigned int)parent->boundLaunchParamValues.size();
+#endif
     
     // ------------------------------------------------------------------
     // configure default pipeline compile options
@@ -271,7 +310,7 @@ namespace owl {
     }
     pipelineCompileOptions.usesMotionBlur     = parent->motionBlurEnabled;
     pipelineCompileOptions.numPayloadValues   = 4;
-    pipelineCompileOptions.numAttributeValues = 2;
+    pipelineCompileOptions.numAttributeValues = parent->numAttributeValues;
     pipelineCompileOptions.exceptionFlags     = OPTIX_EXCEPTION_FLAG_NONE;
     pipelineCompileOptions.pipelineLaunchParamsVariableName = "optixLaunchParams";
     
@@ -289,7 +328,7 @@ namespace owl {
     
     auto &allPGs = allActivePrograms;
     if (allPGs.empty())
-      throw std::runtime_error("trying to create a pipeline w/ 0 programs!?");
+      OWL_RAISE("trying to create a pipeline w/ 0 programs!?");
     
     char log[2048];
     size_t sizeof_log = sizeof( log );
@@ -310,7 +349,7 @@ namespace owl {
        &maxAllowedByOptix,
        sizeof(maxAllowedByOptix));
     if (uint32_t(parent->maxInstancingDepth+1) > maxAllowedByOptix)
-      throw std::runtime_error
+      OWL_RAISE
         ("error when building pipeline: "
          "attempting to set max instancing depth to "
          "value that exceeds OptiX's MAX_TRAVERSABLE_GRAPH_DEPTH limit");
@@ -371,10 +410,8 @@ namespace owl {
       OptixModule optixModule = module->getDD(shared_from_this()).module;
       assert(optixModule);
       
-      const std::string annotatedProgName
-        = std::string("__miss__")+prog->progName;
       pgDesc.miss.module            = optixModule;
-      pgDesc.miss.entryFunctionName = annotatedProgName.c_str();
+      pgDesc.miss.entryFunctionName = prog->annotatedProgName.c_str();
       
       char log[2048];
       size_t sizeof_log = sizeof( log );
@@ -422,10 +459,8 @@ namespace owl {
       assert(optixModule);
       
       pgDesc.kind                     = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-      const std::string annotatedProgName
-        = std::string("__raygen__")+prog->progName;
       pgDesc.raygen.module            = optixModule;
-      pgDesc.raygen.entryFunctionName = annotatedProgName.c_str();
+      pgDesc.raygen.entryFunctionName = prog->annotatedProgName.c_str();
       
       char log[2048];
       size_t sizeof_log = sizeof( log );

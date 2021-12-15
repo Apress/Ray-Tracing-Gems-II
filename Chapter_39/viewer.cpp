@@ -9,8 +9,8 @@
 #include "tiny_obj_loader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "samples/common/3rdParty/stb/stb_image.h"
-#include "samples/common/3rdParty/stb/stb_image_write.h"
+#include "./owl/3rdParty/stb_image/stb/stb_image.h"
+#include "./owl/3rdParty/stb_image/stb/stb_image_write.h"
 
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"
@@ -20,6 +20,7 @@ namespace cdf {
 
   struct {
     std::string objFileName = "";
+    std::string blueNoiseFileName = "";
     std::string outFileName = "owlCDF.png";
     struct {
       vec3f vp = vec3f(0.f);
@@ -38,7 +39,7 @@ namespace cdf {
       std::cout << OWL_TERMINAL_RED << "\nFatal error: " << err
                 << OWL_TERMINAL_DEFAULT << std::endl << std::endl;
 
-    std::cout << "Usage: ./owlCDF environmentMap.{exr|hdr} --obj object.obj [--rendermode {bvh|binary}] [--simplification-rate (0,1)]" << std::endl;
+    std::cout << "Usage: ./owlCDF environmentMap.{exr|hdr} --bn blueNoise_[#.png] --obj object.obj [--rendermode {bvh|binary}] [--simplification-rate (0,1)]" << std::endl;
     std::cout << std::endl;
     exit(1);
   }
@@ -193,6 +194,8 @@ namespace cdf {
         inFileName = arg;
       } else if (arg == "--obj" || arg == "-obj") {
         cmdline.objFileName = argv[++i];
+      } else if (arg == "--bn" || arg == "-bn") {
+        cmdline.blueNoiseFileName = argv[++i];
       } else if (arg == "-fovy") {
         cmdline.camera.fovy = std::stof(argv[++i]);
       }
@@ -260,7 +263,10 @@ namespace cdf {
     if (inFileName == "")
       usage("no filename specified");
 
-    Renderer renderer(inFileName,cmdline.objFileName);
+    if (cmdline.blueNoiseFileName == "")
+      usage("no blue noise filename specified");
+
+    Renderer renderer(inFileName,cmdline.objFileName,cmdline.blueNoiseFileName);
  
     const box3f modelBounds = renderer.modelBounds;
 

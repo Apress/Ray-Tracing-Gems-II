@@ -37,7 +37,7 @@ using namespace owl::common;
   std::cout << "#owl.sample(main): " << message << std::endl;   \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 struct Mesh {
   std::vector<vec3f> vertices;
@@ -75,7 +75,7 @@ struct BoxAnimState {
     rotationAxis = normalize(rotationAxis);
     rotationSpeed = distribution_speed(rndGen);
   }
-  
+
   affine3f getTransform(float t) const
   {
     const float angle  = rotationAngle0 + rotationSpeed*t;
@@ -104,7 +104,7 @@ void addFace(Mesh &mesh, const vec3f ll, const vec3f du, const vec3f dv)
   mesh.indices.push_back(vec3i(idxll,idxll+3,idxll+2));
 }
 
-void addBox(Mesh &mesh, 
+void addBox(Mesh &mesh,
             const vec3f du=vec3f(boxSize.x,0,0),
             const vec3f dv=vec3f(0,boxSize.y,0),
             const vec3f dw=vec3f(0,0,boxSize.z))
@@ -124,7 +124,7 @@ OWLGroup createBox(OWLContext context,
 {
   Mesh mesh;
   addBox(mesh);
-  
+
   // ------------------------------------------------------------------
   // triangle mesh
   // ------------------------------------------------------------------
@@ -139,16 +139,16 @@ OWLGroup createBox(OWLContext context,
 
   OWLGeom trianglesGeom
     = owlGeomCreate(context,trianglesGeomType);
-  
+
   owlTrianglesSetVertices(trianglesGeom,vertexBuffer,
                           mesh.vertices.size(),sizeof(vec3f),0);
   owlTrianglesSetIndices(trianglesGeom,indexBuffer,
                          mesh.indices.size(),sizeof(vec3i),0);
-  
+
   owlGeomSetBuffer(trianglesGeom,"vertex",vertexBuffer);
   owlGeomSetBuffer(trianglesGeom,"texCoord",texCoordsBuffer);
   owlGeomSetBuffer(trianglesGeom,"index",indexBuffer);
-    
+
   // ------------------------------------------------------------------
   // create a 4x4 checkerboard texture
   // ------------------------------------------------------------------
@@ -163,7 +163,7 @@ OWLGroup createBox(OWLContext context,
   for (int iy=0;iy<texSize.y;iy++)
     for (int ix=0;ix<texSize.x;ix++) {
       texels.push_back(((ix ^ iy)&1) ?
-                       color0 : color1); 
+                       color0 : color1);
     }
   OWLTexture cbTexture
     = owlTexture2DCreate(context,
@@ -173,7 +173,7 @@ OWLGroup createBox(OWLContext context,
                          OWL_TEXTURE_NEAREST,
                          OWL_TEXTURE_CLAMP);
   owlGeomSetTexture(trianglesGeom,"texture",cbTexture);
-  
+
   // ------------------------------------------------------------------
   // the group/accel for that mesh
   // ------------------------------------------------------------------
@@ -181,7 +181,7 @@ OWLGroup createBox(OWLContext context,
     = owlTrianglesGeomGroupCreate(context,1,&trianglesGeom);
 
   owlGroupBuildAccel(trianglesGroup);
-  
+
   return trianglesGroup;
 }
 
@@ -189,13 +189,13 @@ OWLGroup createBox(OWLContext context,
 struct Viewer : public owl::viewer::OWLViewer
 {
   Viewer();
-  
+
   /*! gets called whenever the viewer needs us to re-render out widget */
   void render() override;
-  
+
       /*! window notifies us that we got resized. We HAVE to override
           this to know our actual render dimensions, and get pointer
-          to the device frame buffer that the viewer cated for us */     
+          to the device frame buffer that the viewer cated for us */
   void resize(const vec2i &newSize) override;
 
   /*! this function gets called whenever any camera manipulator
@@ -208,7 +208,7 @@ struct Viewer : public owl::viewer::OWLViewer
   OWLGroup   world   { 0 };
 };
 
-/*! window notifies us that we got resized */     
+/*! window notifies us that we got resized */
 void Viewer::resize(const vec2i &newSize)
 {
   OWLViewer::resize(newSize);
@@ -251,8 +251,8 @@ Viewer::Viewer()
 {
   // create a context on the first device:
   context = owlContextCreate(nullptr,1);
-  OWLModule module = owlModuleCreate(context,ptxCode);
-  
+  OWLModule module = owlModuleCreate(context,deviceCode_ptx);
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -296,21 +296,22 @@ Viewer::Viewer()
         boxTransforms.push_back(boxAnimStates[ID].getTransform(0.f));
         groups.push_back(createBox(context,trianglesGeomType,vec3i(ix,iy,iz)));
       }
-  
+
   world
     = owlInstanceGroupCreate(context,groups.size(),
                              groups.data(),
                              nullptr,
                              (const float*)boxTransforms.data(),
-                             OWL_MATRIX_FORMAT_OWL);
+                             OWL_MATRIX_FORMAT_OWL,
+                             OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_UPDATE);
   owlGroupBuildAccel(world);
-  
+
   // ##################################################################
   // set miss and raygen program required for SBT
   // ##################################################################
 
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[]
     = {
@@ -322,7 +323,7 @@ Viewer::Viewer()
   OWLMissProg missProg
     = owlMissProgCreate(context,module,"miss",sizeof(MissProgData),
                         missProgVars,-1);
-  
+
   // ----------- set variables  ----------------------------
   owlMissProgSet3f(missProg,"color0",owl3f{.8f,0.f,0.f});
   owlMissProgSet3f(missProg,"color1",owl3f{.8f,.8f,.8f});
@@ -350,11 +351,11 @@ Viewer::Viewer()
                       rayGenVars,-1);
   /* camera and frame buffer get set in resiez() and cameraChanged() */
   owlRayGenSetGroup (rayGen,"world",        world);
-  
+
   // ##################################################################
   // build *SBT* required to trace the groups
   // ##################################################################
-  
+
   owlBuildPrograms(context);
   owlBuildPipeline(context);
   owlBuildSBT(context);
@@ -366,7 +367,7 @@ void Viewer::render()
   double t = animSpeed * (getCurrentTime() - t0);
   for (size_t i=0;i<boxTransforms.size();i++) {
     boxTransforms[i] = boxAnimStates[i].getTransform((float)t);
-    owlInstanceGroupSetTransform(world,i,
+    owlInstanceGroupSetTransform(world,(int)i,
                                  (const float*)&boxTransforms[i],
                                  OWL_MATRIX_FORMAT_OWL);
   }
@@ -380,10 +381,10 @@ void Viewer::render()
   owlGroupRefitAccel(world);
   updateTime += getCurrentTime();
   PRINT(updateTime/frameID);
-  
+
   // owlGroupBuildAccel(world);
   owlBuildSBT(context);
-  
+
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
 }
 

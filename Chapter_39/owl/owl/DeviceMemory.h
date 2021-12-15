@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -47,7 +47,7 @@ namespace owl {
       
     assert(empty());
     this->sizeInBytes = size;
-    CUDA_CHECK(cudaMalloc( (void**)&d_pointer, sizeInBytes));
+    OWL_CUDA_CHECK(cudaMalloc( (void**)&d_pointer, sizeInBytes));
     assert(alloced() || size == 0);
   }
     
@@ -55,7 +55,7 @@ namespace owl {
   {
     assert(empty());
     this->sizeInBytes = size;
-    CUDA_CHECK(cudaMallocManaged( (void**)&d_pointer, sizeInBytes));
+    OWL_CUDA_CHECK(cudaMallocManaged( (void**)&d_pointer, sizeInBytes));
     assert(alloced() || size == 0);
   }
     
@@ -67,7 +67,7 @@ namespace owl {
   inline void DeviceMemory::upload(const void *h_pointer, const char *debugMessage)
   {
     assert(alloced() || empty());
-    CUDA_CHECK2(debugMessage,
+    OWL_CUDA_CHECK2(debugMessage,
                 cudaMemcpy((void*)d_pointer, h_pointer,
                            sizeInBytes, cudaMemcpyHostToDevice));
   }
@@ -75,7 +75,7 @@ namespace owl {
   inline void DeviceMemory::uploadAsync(const void *h_pointer, cudaStream_t stream)
   {
     assert(alloced() || empty());
-    CUDA_CHECK(cudaMemcpyAsync((void*)d_pointer, h_pointer,
+    OWL_CUDA_CHECK(cudaMemcpyAsync((void*)d_pointer, h_pointer,
                                sizeInBytes, cudaMemcpyHostToDevice,
                                stream));
   }
@@ -83,7 +83,7 @@ namespace owl {
   inline void DeviceMemory::download(void *h_pointer)
   {
     assert(alloced() || sizeInBytes == 0);
-    CUDA_CHECK(cudaMemcpy(h_pointer, (void*)d_pointer, 
+    OWL_CUDA_CHECK(cudaMemcpy(h_pointer, (void*)d_pointer, 
                           sizeInBytes, cudaMemcpyDeviceToHost));
   }
     
@@ -91,7 +91,7 @@ namespace owl {
   {
     assert(alloced() || empty());
     if (!empty()) {
-      CUDA_CHECK(cudaFree((void*)d_pointer));
+      OWL_CUDA_CHECK(cudaFree((void*)d_pointer));
     }
     sizeInBytes = 0;
     d_pointer   = 0;

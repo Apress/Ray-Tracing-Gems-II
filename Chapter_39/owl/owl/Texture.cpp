@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2020 Ingo Wald                                                 //
+// Copyright 2020-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -29,7 +29,8 @@ namespace owl {
     case OWL_TEXEL_FORMAT_R32F:
       return sizeof(float);
     default:
-      throw std::runtime_error("texel format not implemented");
+      OWL_RAISE("texel format not implemented");
+      return 0;
     };
   }
   
@@ -82,12 +83,12 @@ namespace owl {
       }        
 
       cudaArray_t   pixelArray;
-      CUDA_CALL(MallocArray(&pixelArray,
+      OWL_CUDA_CALL(MallocArray(&pixelArray,
                              &channel_desc,
                              size.x,size.y));
       textureArrays.push_back(pixelArray);
       
-      CUDA_CALL(Memcpy2DToArray(pixelArray,
+      OWL_CUDA_CALL(Memcpy2DToArray(pixelArray,
                                  /* offset */0,0,
                                  texels,
                                  pitch,pitch,size.y,
@@ -130,7 +131,7 @@ namespace owl {
       
       // Create texture object
       cudaTextureObject_t cuda_tex = 0;
-      CUDA_CALL(CreateTextureObject(&cuda_tex, &res_desc, &tex_desc, nullptr));
+      OWL_CUDA_CALL(CreateTextureObject(&cuda_tex, &res_desc, &tex_desc, nullptr));
 
       textureObjects.push_back(cuda_tex);
     }
@@ -159,7 +160,7 @@ namespace owl {
 
     for (auto device : context->getDevices()) {
       SetActiveGPU forLifeTime(device);
-      uint32_t id = device->getCudaDeviceID();
+      uint32_t id = device->ID;
       cudaDestroyTextureObject(textureObjects[id]);
       cudaFreeArray(textureArrays[id]);
     }

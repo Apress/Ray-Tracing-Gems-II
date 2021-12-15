@@ -22,7 +22,7 @@
 
 // eventually to go into 'apps/'
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
-#include "samples/common/3rdParty/stb/stb_image_write.h"
+#include "stb/stb_image_write.h"
 
 namespace owl {
   namespace viewer {
@@ -92,14 +92,14 @@ namespace owl {
       // std::cout << "#owl.viewer: glfw initialized" << std::endl;
       alreadyInitialized = true;
     }
-    
+
     /*! helper function that dumps the current frame buffer in a png
       file of given name */
     void OWLViewer::screenShot(const std::string &fileName)
     {
       const uint32_t *fb
         = (const uint32_t*)fbPointer;
-      
+
       std::vector<uint32_t> pixels;
       for (int y=0;y<fbSize.y;y++) {
         const uint32_t *line = fb + (fbSize.y-1-y)*fbSize.x;
@@ -111,22 +111,22 @@ namespace owl {
                      pixels.data(),fbSize.x*sizeof(uint32_t));
       std::cout << "#owl.viewer: frame buffer written to " << fileName << std::endl;
     }
-      
+
     vec2i OWLViewer::getScreenSize()
     {
       initGLFW();
       int numModes = 0;
       auto monitor = glfwGetPrimaryMonitor();
-      if (!monitor) 
+      if (!monitor)
         throw std::runtime_error("could not query monitor...");
       const GLFWvidmode *modes
         = glfwGetVideoModes(monitor, &numModes);
       vec2i size(0,0);
-      for (int i=0; i<numModes; i++) 
+      for (int i=0; i<numModes; i++)
         size = max(size,vec2i(modes[i].width,modes[i].height));
       return size;
     }
- 
+
     float computeStableEpsilon(float f)
     {
       return abs(f) * float(1./(1<<21));
@@ -138,7 +138,7 @@ namespace owl {
                      computeStableEpsilon(v.y)),
                  computeStableEpsilon(v.z));
     }
-    
+
     SimpleCamera::SimpleCamera(const Camera &camera)
     {
       auto &easy = *this;
@@ -161,13 +161,13 @@ namespace owl {
       easy.screen.vertical   = screen_height * camera.frame.vy;
       easy.screen.horizontal = screen_height * camera.aspect * camera.frame.vx;
       easy.screen.lower_left
-        = 
+        =
         /* NEGATIVE z axis! */
         - max(minFocalDistance,camera.focalDistance) * camera.frame.vz
         - 0.5f * easy.screen.vertical
         - 0.5f * easy.screen.horizontal;
     }
-    
+
     // ==================================================================
     // actual viewerwidget class
     // ==================================================================
@@ -178,7 +178,7 @@ namespace owl {
       if (fbPointer)
         cudaFree(fbPointer);
       cudaMallocManaged(&fbPointer,newSize.x*newSize.y*sizeof(uint32_t));
-      
+
       fbSize = newSize;
       if (fbTexture == 0) {
         GL_CHECK(glGenTextures(1, &fbTexture));
@@ -193,11 +193,11 @@ namespace owl {
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, fbTexture));
       GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newSize.x, newSize.y, 0, GL_RGBA,
                             GL_UNSIGNED_BYTE, nullptr));
-      
+
       // We need to re-register when resizing the texture
       cudaError_t rc = cudaGraphicsGLRegisterImage
         (&cuDisplayTexture, fbTexture, GL_TEXTURE_2D, 0);
-      
+
       // if (firstResize || !firstResize && resourceSharingSuccessful) {
       bool forceSlowDisplay = false;
       if (rc != cudaSuccess || forceSlowDisplay) {
@@ -227,7 +227,7 @@ namespace owl {
       glfwMakeContextCurrent(handle);
       if (resourceSharingSuccessful) {
         GL_CHECK(cudaGraphicsMapResources(1, &cuDisplayTexture));
-        
+
         cudaArray_t array;
         GL_CHECK(cudaGraphicsSubResourceGetMappedArray(&array, cuDisplayTexture, 0, 0));
         {
@@ -248,7 +248,7 @@ namespace owl {
                                  fbSize.x, fbSize.y,
                                  GL_RGBA, GL_UNSIGNED_BYTE, fbPointer));
       }
-      
+
       glDisable(GL_LIGHTING);
       glColor3f(1, 1, 1);
 
@@ -259,7 +259,7 @@ namespace owl {
       glBindTexture(GL_TEXTURE_2D, fbTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      
+
       glDisable(GL_DEPTH_TEST);
 
       glViewport(0, 0, fbSize.x, fbSize.y);
@@ -272,13 +272,13 @@ namespace owl {
       {
         glTexCoord2f(0.f, 0.f);
         glVertex3f(0.f, 0.f, 0.f);
-      
+
         glTexCoord2f(0.f, 1.f);
         glVertex3f(0.f, (float)fbSize.y, 0.f);
-      
+
         glTexCoord2f(1.f, 1.f);
         glVertex3f((float)fbSize.x, (float)fbSize.y, 0.f);
-      
+
         glTexCoord2f(1.f, 0.f);
         glVertex3f((float)fbSize.x, 0.f, 0.f);
       }
@@ -399,13 +399,13 @@ namespace owl {
     {
       fprintf(stderr, "Error: %s\n", description);
     }
-  
+
 
     void OWLViewer::setTitle(const std::string &s)
     {
       glfwSetWindowTitle(handle,s.c_str());
     }
-    
+
     OWLViewer::OWLViewer(const std::string &title,
                          const vec2i &initWindowSize,
                          bool visible, bool enableVsync)
@@ -413,18 +413,18 @@ namespace owl {
       glfwSetErrorCallback(glfw_error_callback);
 
       initGLFW();
-      
+
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
       glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
       glfwWindowHint(GLFW_VISIBLE, visible);
-      
+
       handle = glfwCreateWindow(initWindowSize.x, initWindowSize.y,
                                 title.c_str(), NULL, NULL);
       if (!handle) {
         glfwTerminate();
         exit(EXIT_FAILURE);
       }
-      
+
       glfwSetWindowUserPointer(handle, this);
       glfwMakeContextCurrent(handle);
       glfwSwapInterval( (enableVsync) ? 1 : 0 );
@@ -441,7 +441,7 @@ namespace owl {
 
     /*! callback for a key press */
     static void glfwindow_char_cb(GLFWwindow *window,
-                                  unsigned int key) 
+                                  unsigned int key)
     {
       OWLViewer *gw = static_cast<OWLViewer*>(glfwGetWindowUserPointer(window));
       assert(gw);
@@ -453,7 +453,7 @@ namespace owl {
                                  int key,
                                  int scancode,
                                  int action,
-                                 int mods) 
+                                 int mods)
     {
       OWLViewer *gw = static_cast<OWLViewer*>(glfwGetWindowUserPointer(window));
       assert(gw);
@@ -463,7 +463,7 @@ namespace owl {
     }
 
     /*! callback for _moving_ the mouse to a new position */
-    static void glfwindow_mouseMotion_cb(GLFWwindow *window, double x, double y) 
+    static void glfwindow_mouseMotion_cb(GLFWwindow *window, double x, double y)
     {
       OWLViewer *gw = static_cast<OWLViewer*>(glfwGetWindowUserPointer(window));
       assert(gw);
@@ -474,14 +474,14 @@ namespace owl {
     static void glfwindow_mouseButton_cb(GLFWwindow *window,
                                          int button,
                                          int action,
-                                         int mods) 
+                                         int mods)
     {
       OWLViewer *gw = static_cast<OWLViewer*>(glfwGetWindowUserPointer(window));
       assert(gw);
       gw->mouseButton(button,action,mods);
     }
-  
-    void OWLViewer::mouseButton(int button, int action, int mods) 
+
+    void OWLViewer::mouseButton(int button, int action, int mods)
     {
       const bool pressed = (action == GLFW_PRESS);
       lastMousePos = getMousePos();
@@ -542,9 +542,12 @@ namespace owl {
       fovyInDegrees = camera.fovyInDegrees;
     }
 
-    
-
     void OWLViewer::showAndRun()
+    {
+      showAndRun([]() {return true; }); // run until closed manually
+    }
+
+    void OWLViewer::showAndRun(std::function<bool()> keepgoing)
     {
       int width, height;
       glfwGetFramebufferSize(handle, &width, &height);
@@ -555,8 +558,8 @@ namespace owl {
       glfwSetKeyCallback(handle, glfwindow_key_cb);
       glfwSetCharCallback(handle, glfwindow_char_cb);
       glfwSetCursorPosCallback(handle, glfwindow_mouseMotion_cb);
-    
-      while (!glfwWindowShouldClose(handle)) {
+
+      while (!glfwWindowShouldClose(handle) && keepgoing()) {
         static double lastCameraUpdate = -1.f;
         if (camera.lastModified != lastCameraUpdate) {
           cameraChanged();
@@ -564,10 +567,13 @@ namespace owl {
         }
         render();
         draw();
-        
+
         glfwSwapBuffers(handle);
         glfwPollEvents();
       }
+
+      glfwDestroyWindow(handle);
+      glfwTerminate();
     }
 
     /*! tell GLFW to set desired active window size (GLFW my choose
@@ -576,6 +582,6 @@ namespace owl {
     {
       glfwSetWindowSize(handle,desiredSize.x,desiredSize.y);
     }
-    
+
   } // ::owl::viewer
 } // ::owl

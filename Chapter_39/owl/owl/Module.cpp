@@ -59,7 +59,9 @@ namespace owl {
 
     for (const char *s = orignalPtxCode; *s; ) {
       std::string line = getNextLine(s);
-      if (line.find(" _optix_") != line.npos)
+      if (line.find(" _optix_") != line.npos ||
+          line.find(",_optix_") != line.npos
+          )
         fixed << "//dropped: " << line;
       else
         fixed << line;
@@ -151,9 +153,9 @@ namespace owl {
     if (rc != CUDA_SUCCESS) {
       const char *errName = 0;
       cuGetErrorName(rc,&errName);
-      throw std::runtime_error("unknown CUDA error when building module "
-                               "for bounds program kernel"
-                               +std::string(errName));
+      OWL_RAISE("unknown CUDA error when building module "
+                "for bounds program kernel "
+                + std::string(errName) + " log: " + std::string(log));
     }
     LOG_OK("created module #" << parent->ID << " (both optix and cuda)");
   }

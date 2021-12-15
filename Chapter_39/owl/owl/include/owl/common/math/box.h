@@ -220,11 +220,17 @@ namespace owl {
     typedef box_t<vec_t<T,4>> box4##t;          \
     typedef box_t<vec3a_t<T>> box3##t##a;       \
   
-    _define_box_types(short int,s);
-    _define_box_types(unsigned short int,us);
-    _define_box_types(int,i);
-    _define_box_types(unsigned int,ui);
+    _define_box_types(bool ,b);
+    _define_box_types(int8_t ,c);
+    _define_box_types(int16_t ,s);
+    _define_box_types(int32_t ,i);
+    _define_box_types(int64_t ,l);
+    _define_box_types(uint8_t ,uc);
+    _define_box_types(uint16_t,us);
+    _define_box_types(uint32_t,ui);
+    _define_box_types(uint64_t,ul);
     _define_box_types(float,f);
+    _define_box_types(double,d);
   
 #undef _define_box_types
 

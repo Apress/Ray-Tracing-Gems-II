@@ -1,49 +1,33 @@
-if (POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW)
-endif()
-if (POLICY CMP0071)
-  cmake_policy(SET CMP0071 NEW)
-endif()
-project(Optix-OWL VERSION 1.0.4)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.17)
 
-if(WIN32)
-  add_definitions(-DNOMINMAX)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.18)
+  cmake_policy(SET CMP0104 NEW)
 endif()
 
-set(owl_dir ${PROJECT_SOURCE_DIR}/owl)
-add_subdirectory(${owl_dir} EXCLUDE_FROM_ALL)
+project(RTX_ITS VERSION 1.0.4 LANGUAGES C CXX CUDA)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${owl_dir}/owl/cmake/")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/")
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+add_subdirectory(owl EXCLUDE_FROM_ALL)
+
+include(embed_ptx)
 
 #include(configure_build_type)
 
-add_definitions(${OWL_CXX_FLAGS})
-include_directories(${OWL_INCLUDES})
-include_directories(${OWL_VIEWER_INCLUDES})
+embed_ptx(
+  OUTPUT_TARGET
+    deviceCode_ptx
+  EMBEDDED_SYMBOL_NAMES
+    deviceCode_ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
 
-find_package(CUDA REQUIRED)
-include_directories(${CUDA_TOOLKIT_INCLUDE})
-find_program(BIN2C bin2c 
-  HINTS 
-  ${CUDA_TOOLKIT_ROOT_DIR}/bin/
-  /usr/local/cuda/bin)
-
-cuda_compile_and_embed(deviceCode_ptx deviceCode.cu)
-
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${OWL_CXX_FLAGS}")
-cuda_add_executable(rtxITS
-  ${deviceCode_ptx}
+add_executable(rtxITS
   viewer.cpp
-  renderer.cpp
+  Renderer.cpp
 )
 
-set(LIBRARIES 
-  ${OWL_LIBRARIES}
-  ${OWL_VIEWER_LIBRARIES}
-)
-
-target_link_libraries(rtxITS ${LIBRARIES})
-
+target_link_libraries(rtxITS PRIVATE owl::owl owl_viewer deviceCode_ptx)

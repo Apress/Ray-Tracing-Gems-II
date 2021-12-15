@@ -14,55 +14,45 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include(configure_glfw)
+#if (WIN32)
+#set(OPENGL_DEPENDENCY "")
+#else()
+#set(OpenGL_GL_PREFERENCE "LEGACY")
+#find_package(OpenGL QUIET)
+#set(OPENGL_DEPENDENCY OpenGL::OpenGL)
+#endif()
+#find_package(OpenGL QUIET)
 
-if (OWL_HAVE_GLFW)
-  
-  set(owl_viewer_sources
-    # add header files, so visual studio will properly show them as part of the solution
-    OWLViewer.h
-    Camera.h
-    InspectMode.h
-    FlyMode.h
+set(OpenGL_GL_PREFERENCE "LEGACY")
+find_package(OpenGL REQUIRED OPTIONAL_COMPONENTS OpenGL)
 
-    # the actual source files
-    OWLViewer.cpp
-    Camera.cpp
-    InspectMode.cpp
-    FlyMode.cpp
-    )
+add_library(owl_viewer STATIC)
 
-  # this is doing the same using OptiX
-  add_library(owl_viewer STATIC ${owl_viewer_sources})
-  
-  target_link_libraries(owl_viewer
-    ${OWL_GLFW_LIBRARIES}
-    ${OWL_LIBRARIES}
-    )
+target_sources(owl_viewer PRIVATE
+  # add header files, so visual studio will properly show them as part of the solution
+  OWLViewer.h
+  Camera.h
+  InspectMode.h
+  FlyMode.h
 
-  set(OWL_VIEWER_LIBRARIES
-    owl_viewer
-    ${OWL_GLFW_LIBRARIES}
-    ${OWL_LIBRARIES}
-    )
+  # the actual source files
+  OWLViewer.cpp
+  Camera.cpp
+  InspectMode.cpp
+  FlyMode.cpp
+)
 
-  set(OWL_HAVE_VIEWER ON)
-  set(OWL_VIEWER_INCLUDES
-    ${OWL_GLFW_INCLUDES}
-    ${owl_dir}/samples/common/
-    )
-  set(OWL_VIEWER_LIBRARIES
-    owl_viewer
-    ${OWL_LIBRARIES}
-    ${OWL_GLFW_LIBRARIES}
-    glfw
-    )
+if(TARGET OpenGL::OpenGL)
+  target_link_libraries(owl_viewer PUBLIC OpenGL::OpenGL)
 else()
-  set(OWL_HAVE_VIEWER OFF)
+  target_link_libraries(owl_viewer PUBLIC OpenGL::GL)
 endif()
 
-# export those to whoever included this:
-set(OWL_HAVE_VIEWER ${OWL_HAVE_VIEWER} PARENT_SCOPE)
-set(OWL_VIEWER_INCLUDES ${OWL_VIEWER_INCLUDES} PARENT_SCOPE)
-set(OWL_VIEWER_LIBRARIES ${OWL_VIEWER_LIBRARIES} PARENT_SCOPE)
+target_link_libraries(owl_viewer
+  PUBLIC
+    owl::owl
+    glfw
+    stb_image
+)
 
+target_include_directories(owl_viewer PUBLIC ${CMAKE_CURRENT_LIST_DIR}/..)

@@ -43,7 +43,8 @@ namespace owl {
     /*! construct with given array of groups - transforms can be specified later */
     InstanceGroup(Context *const context,
                   size_t numChildren,
-                  Group::SP      *groups);
+                  Group::SP *groups,
+                  unsigned int buildFlags);
 
     /*! pretty-printer, for printf-debugging */
     std::string toString() const override;
@@ -62,6 +63,10 @@ namespace owl {
     /* set instance IDs to use for the children - MUST be an array of
        children.size() items */
     void setInstanceIDs(const uint32_t *instanceIDs);
+
+    /* set visibility masks to use for the children - MUST be an array of
+       children.size() items */
+    void setVisibilityMasks(const uint8_t *visibilityMasks);
       
     void buildAccel() override;
     void refitAccel() override;
@@ -94,6 +99,18 @@ namespace owl {
       specified we/optix will fill in automatically using
       instanceID=childID */
     std::vector<uint32_t>   instanceIDs;
+
+    /*! vector of visibility masks to use for these instances - if not
+      specified we/optix will fill in automatically using
+      visibility=255 */
+    std::vector<uint8_t> visibilityMasks;
+
+    constexpr static unsigned int defaultBuildFlags = 
+        OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+
+    protected:
+    const unsigned int buildFlags;
+
   };
 
   // ------------------------------------------------------------------

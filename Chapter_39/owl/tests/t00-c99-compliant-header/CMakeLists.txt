@@ -14,7 +14,10 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-if (NOT WIN32)
+if (WIN32)
+  return()
+endif()
+
 # from https://stackoverflow.com/questions/33222569/best-way-to-portably-set-compiler-options-like-wall-and-pedantic-in-cmake
 include(CheckCCompilerFlag)
 
@@ -34,14 +37,7 @@ enable_c_compiler_flag_if_supported("-Wall")
 enable_c_compiler_flag_if_supported("-Wextra")
 enable_c_compiler_flag_if_supported("-pedantic")
 
-include_directories(${OWL_INCLUDES})
-add_executable(test00-c99-compliant-header
-  hostCode.c
-  )
+add_executable(test00-c99-compliant-header hostCode.c)
 set_property(TARGET test00-c99-compliant-header PROPERTY C_STANDARD 99)
-target_link_libraries(test00-c99-compliant-header
-  ${OWL_LIBRARIES}
-  )
+target_link_libraries(test00-c99-compliant-header PRIVATE owl::owl)
 add_test(test00-c99-compliant-header ${CMAKE_BINARY_DIR}/test00-c99-compliant-header)
-
-endif()

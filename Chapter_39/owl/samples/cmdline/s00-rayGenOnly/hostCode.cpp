@@ -35,7 +35,7 @@
   std::cout << "#owl.sample(main): " << message << std::endl;   \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 // When run, this program produces this PNG as output.
 // In this case the correct result is a red and light gray checkerboard,
@@ -71,7 +71,7 @@ int main(int ac, char **av)
   // This PTX intermediate code representation is then compiled into an OptiX module.
   // See https://devblogs.nvidia.com/how-to-get-started-with-optix-7/ for more information.
   OWLModule module
-    = owlModuleCreate(owl,ptxCode);
+    = owlModuleCreate(owl,deviceCode_ptx);
 
   OWLVarDecl rayGenVars[]
     = {
@@ -86,8 +86,8 @@ int main(int ac, char **av)
   OWLRayGen rayGen
     = owlRayGenCreate(owl,module,"simpleRayGen",
                       sizeof(RayGenData),rayGenVars,-1);
- 
-  // (re-)builds all optix programs, with current pipeline settings 
+
+  // (re-)builds all optix programs, with current pipeline settings
   owlBuildPrograms(owl);
   // Create the pipeline. Note that owl will (kindly) warn there are no geometry and no miss programs defined.
   owlBuildPipeline(owl);
@@ -116,12 +116,12 @@ int main(int ac, char **av)
   // ##################################################################
   // now that everything is ready: launch it ....
   // ##################################################################
-  
+
   LOG("executing the launch ...");
   // Normally launching without a hit or miss shader causes OptiX to trigger warnings.
   // Owl's wrapper call here will set up fake hit and miss records into the SBT to avoid these.
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
-  
+
   LOG("done with launch, writing frame buffer to " << outFileName);
   const uint32_t *fb = (const uint32_t*)owlBufferGetPointer(frameBuffer,0);
   stbi_write_png(outFileName,fbSize.x,fbSize.y,4,
@@ -131,12 +131,12 @@ int main(int ac, char **av)
   // ##################################################################
   // and finally, clean up
   // ##################################################################
-  
+
   LOG("cleaning up ...");
   owlModuleRelease(module);
   owlRayGenRelease(rayGen);
   owlBufferRelease(frameBuffer);
   owlContextDestroy(owl);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }

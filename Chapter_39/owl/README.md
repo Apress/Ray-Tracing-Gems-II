@@ -15,7 +15,7 @@ table (SBT) can be built and properly populated by a single call
 In addition, OWL also allows for somewhat higher-level abstractions
 than native OptiX+CUDA for operations such as creating device buffers,
 uploading data, building shader programs and pipelines, building
-acceleration structures, etc. 
+acceleration structures, etc.
 
 ## Who is OWL designed/intended for?
 
@@ -67,20 +67,20 @@ debug, and maintain.
 	      = owlDeviceBufferCreate(ctx,OWL_FLOAT3,
 		                          vtx.size(),vtx.data());
 	   OWLBuffer idxBuffer
-	      = owlDeviceBufferCreate(ctx,OWL_FLOAT3,
+	      = owlDeviceBufferCreate(ctx,OWL_INT3,
 		                          idx.size(),idx.data());
-								  
+
 	   /* create triangle mesh geometry */
 	   OWLGeom mesh = owlGeomCreate(ctx,myMeshGT);
 	   owlTrianglesSetVertices(mesh,vtxBuffer,vtx.size(),
 	                          /*stride+ofs*/sizeof(vtx[0],0);
 	   owlTrianglesSetIndices(mesh,vtxBuffer,vtx.size(),
 	                          /*stride+ofs*/sizeof(idx[0]),0);
-							  
+
 	   /* create and build triangle BLAS */
 	   OWLGroup blas = owlTrianglesGroupCreate(ctx,1,&mesh);
 	   owlGroupBuildAccel(blas);
-							  
+
 	   /* create and build instance accel struct (IAS) */
 	   OWLGroup ias = owlInstanceGroupCreate(ctx,1,
 	       /* instantiated BLASes */&blas,
@@ -102,7 +102,7 @@ SBT (`owlBuildSBT(ctx)`), etc.
 
 As stated above, OWL explicitly aims for helping entry-level or casual
 RTX users get started, and get working productively with OptiX and RTX
-without having to first become an OptiX "Ninja". 
+without having to first become an OptiX "Ninja".
 
 However, that is not to mean that it is *only* useful for beginners.
 In fact, OWL currently supports lots of rather advanced features as
@@ -153,7 +153,7 @@ buffers, refitting, textures, or motion blur. Some features will still
 need adding (e.g., curves, which got added to OptiX 7.1 but are not yet
 exposed in OWL); however, we consider the current release to be
 sufficiently stable to finally have given it the long-awaited "version
-1.0.0".
+1.x".
 
 <!--- ------------------------------------------------------- -->
 # Sample Use Cases
@@ -165,60 +165,60 @@ Some sample use projects/papers that recently used OWL:
   (https://ingowald.blog/2020/10/26/moana-on-rtx-first-light/)
 
   ![Sample "Moana on OWL/OptiX" images](doc/jpg/collage-moana.jpg)
-  
+
 - "VisII - A Python-Scriptable Virtual Scene Imaging Interface (2020)
 
   (https://github.com/owl-project/ViSII)
 
   ![Sample "VisII" images](doc/jpg/collage-visii.jpg)
-  
+
 - "Ray Tracing Structured AMR Data Using ExaBricks". I Wald, S
   Zellmann, W Usher, N Morrical, U Lang, and V Pascucci. IEEE
   TVCG(Proceedings of IEEE Vis
   2020).
-  
+
   (https://www.willusher.io/publications/exabrick)
-  
+
   ![Sample "ExaBricks" images (Image Credits: See Authors)](doc/jpg/collage-exabricks.jpg)
-  
+
 - "Accelerating Force-Directed Graph Drawing with RT Cores".  S
   Zellmann, M Weier, I Wald, IEEE Vis Short
   Papers 2020.
-  
+
   (https://arxiv.org/pdf/2008.11235.pdf)
- 
- 
+
+
  - "A Virtual Frame Buffer Abstraction for Parallel Rendering of Large
   Tiled Display Walls". M Han, I Wald, W Usher, N Morrical, A Knoll, V
   Pascucci, C R Johnson. IEEE Vis Short Papers 2020.
-  
+
   (http://www.sci.utah.edu/~wald/Publications/2020/dw2/dw2.pdf)
- 
+
 - "Spatial Partitioning Strategies for Memory-Efficient Ray Tracing of
   Particles".  P Gralka, I Wald, S Geringer, G Reina, Th Ertl. IEEE
   Symposium on Large Data Analysis and Viusalization (LDAV) 2020.
- 
+
 - "Finding Efficient Spatial Distributions for Massively Instanced 3-d
   Models".  S Zellmann, N Morrical, I Wald, V Pascucci.  Eurographics
   Symposium on Parallel Graphics and Visualization (EGPGV 2020).
-  
+
   (https://vis.uni-koeln.de/forschung/publikationen/finding-efficient-spatial-distributions-for-massively-instanced-3-d-models)
- 
+
   ![Sample "Data Parallel Ray Tracing w/ OWL" images (Image Credits: See Authors)](doc/jpg/collage-instances.jpg)
- 
+
 - "High-Quality Rendering of Glyphs Using Hardware-Accelerated Ray
   Tracing".  S Zellmann, M Aumüller, N Marshak, I Wald.  Eurographics
   Symposium on Parallel Graphics and Visualization (EGPGV 2020).
-  
+
   (https://vis.uni-koeln.de/forschung/publikationen/high-quality-rendering-of-glyphs-using-hardware-accelerated-ray-tracing)
 
   ![Sample "ExaBricks" images (Image Credits: See Authors)](doc/jpg/collage-tubes.jpg)
-  
+
 - "RTX Beyond Ray Tracing: Exploring the Use of Hardware Ray Tracing
   Cores for Tet-Mesh Point Location". I Wald, W Usher, N Morrical, L
   Lediaev, and V Pascucci.  In High Performance Graphics Short Papers,
-  2019 
-  
+  2019
+
   (https://www.willusher.io/publications/rtx-points)
 
 - "Using Hardware Ray Transforms to Accelerate Ray/Primitive
@@ -226,13 +226,13 @@ Some sample use projects/papers that recently used OWL:
   Zellmann, L Ma, W Usher, T Huang, V Pascucci.  Proceedings of the
   ACM on Computer Graphics and Interactive Techniques (Proceedings of
   High Performance Graphics), 2020
-  
+
   (https://www.willusher.io/publications/owltubes)
 
 - "Efficient Space Skipping and Adaptive Sampling of Unstructured
   Volumes Using Hardware Accelerated Ray Tracing. N Morrical, W
   Usher, I Wald, V Pascucci. In IEEE VIS Short Papers, 2019
-  
+
   (https://www.willusher.io/publications/rtx-space-skipping)
 
 
@@ -240,16 +240,19 @@ Some sample use projects/papers that recently used OWL:
 # Building OWL / Supported Platforms
 
 General Requirements:
-- OptiX 7 SDK (version 7.0, 7.1, or 7.2, will work with either)
-- CUDA verion 10 or 11
-- a C++11 capable compiler (regular gcc on CentOS and Linux should do, VS on Windows)
+- OptiX 7 SDK (version 7.0, 7.1, 7.2, 7.3, or 7.4; should work with either)
+- CUDA version 10 or 11
+- a C++11 capable compiler (regular gcc on CentOS, Ubuntu, or any other Linux should do; as should VS on Windows)
+- OpenGL
 
 Per-OS Instructions:
 
 - Ubuntu 18, 19, and 20 (automatically tested on 18, mostly developed on 20)
-    - Requires: `sudo apt install cmake-curses-gui`
+    - Dependencies
+		- cmake for building (`sudo apt install cmake-curses-gui`)
+		- if you want to build the graphical examples: glfw (`sudo apt-get install libglfw3-dev`), or all the libraries to build it from included source code (`sudo apt-get install x11-xserver-utils libxrandr-dev libxinerama-dev libxcb-xkb-dev libxcursor-dev libxcb-xinput-dev libxi-dev`)
 	- Build:
-	```
+	```bash
 	mkdir build
 	cd build
 	cmake ..
@@ -258,7 +261,7 @@ Per-OS Instructions:
 - CentOS 7:
     - Requires: `sudo yum install cmake3`
 	- Build:
-	```
+	```bash
 	mkdir build
 	cd build
 	cmake3 ..
@@ -280,36 +283,81 @@ to use OWL as a git submodule, using CMake to configure and build this
 submodule. In particular, the suggested procedure is to first
 do a `add_subdirectory` with the owl submodules as such:
 
-    set(owl_dir ${PROJECT_SOURCE_DIR}/whereeverYourOWLSubmoduleIs)
-    add_subdirectory(${owl_dir} EXCLUDE_FROM_ALL)
+```cmake
+set(owl_dir ${PROJECT_SOURCE_DIR}/whereeverYourOWLSubmoduleIs)
+add_subdirectory(${owl_dir} EXCLUDE_FROM_ALL)
+```
 
-(the `EXCLUDE_FROM_ALL` makes sure that your main project won't
-automatically build any owl samples or test cases unless you explicitly request so).
+(the `EXCLUDE_FROM_ALL` makes sure that your main project won't automatically
+build any owl samples or test cases unless you explicitly request so).
 
-After that `include_subdirectory` OWL sets some CMake variables in the
-parent script that let this parent CMakeList file use it as if it had been
-found with a `find_package` script. In particular, it will set the following variables for the user's convenience:
+Once your project has called `add_subdirectory` on owl, it only has to link the
+`owl::owl` target in order to bring in all includes, linked libraries, etc. to
+fully use it. This might look like:
 
-- `OWL_INCLUDES`: the list of directories where owl-related includes
-  (like `owl/owl.h' etc) can be found.
+```cmake
+target_link_libraries(myOwlApp PRIVATE owl::owl)
+```
 
-- `OWL_CXX_FLAGS`: command-line parameters that the app should pass as
-  `compile_definitions` to any source file that includes any owl
-  header files. 
-
-- `OWL_LIBRARIES`: the list of libraries the user should link to when
-  using OWL.  This will, for example, automatically include TBB
-  dependencies if those could be found.
-  
-- `OWL_VIEWER_LIBRARIES`: libraries required when (also) using the OWL
-  sampler viewer widget (programs that use their own viewer/windowing
-  code can ignore this).
-  
-For sample code on how to use this, have a look at the `owl/samples/`
-directory.
+OptiX will need to be in a place that can be found by CMake. Point CMake at your
+OptiX directory by adding it to `CMAKE_PREFIX_PATH` (where it works on all
+platforms similar to how `LD_LIBRARY_PATH` resolves runtime linking on Linux).
+Note that `CMAKE_PREFIX_PATH` can be specified as an environment variable or as
+a CMake variable when you run CMake on your project.
 
 <!--- ------------------------------------------------------- -->
 # Latest Progress/Revision History
+
+Latest additions, not yet in any release
+----------------------------------------------------------------------
+
+- build fix to automatically build glfw on linux if no system-glfw is
+  installed (kudos srogatch)
+
+- now handling empty user-geometries gracefully (fixes #147)
+
+v1.1 - Switched to "modern cmake" technology (kudos lpisha, and jda)
+----------------------------------------------------------------------
+
+*v.1.1.6*: 
+
+- bugfix: supporting optix 7.4 now.
+
+- renamed all `CUDA_` macros to `OWL_CUDA_` to avoid naming conflicts with other projects
+<none yet>
+
+
+*v.1.1.5*: bugfix: various buffer types didn't properly release all memory.
+
+*v.1.1.4*:
+
+- added new (optional) `EMBEDDED_SYMBOL_NAMES` argument  to `embed_ptx()` to
+  permit overriding the C symbol names used (default is `${CU_FILE_NAME}_ptx`)
+    - see `tests/t01-many-spheres` as an example of using this feature
+- added new (optional) `PTX_TARGET` argument to `embed_ptx()` to allow
+  specifying the target name used to compile `.cu` files to PTX
+    - see `tests/t02-group-rebuilds` as an example of using this feature
+
+*v.1.1.3*:  bugfix: fixed TBB includes for windows, when sued as submodule
+
+*v.1.1.2*:
+
+- added `owlBufferClear()`, at least for copyable data
+
+- added `owlLaunch3D()`, as requested in feature request issue #123
+
+- added new cmdline sample s10-launch3D that demonstrates both 3D
+  launches, and how to do 'interop' between CUDA and OWL (using owl
+  for rendering, and CUDA to convert framebuffer from float3 to RGBA8.
+
+*1.1.1*: various fixes for the 'modern cmake' version, with a pretty
+   big re-vamp of the entire build system. projects using owl as a
+   submodule need to update how they use cmake accordingly; pls
+   consult the samples for how to cleanly do that.
+
+*1.1.0*: first release with louis pisha's 'modern cmake' version of the build system.
+	Also includes several new samples, including the voxel renderer
+	from the "ray tracing gems2" article.
 
 v1.0.x - First "considered to be complete" version
 ----------------------------------------------------------------------
@@ -327,7 +375,7 @@ v1.0.x - First "considered to be complete" version
 v0.9.x - Elimination of LL layer, and support for motion blur
 ----------------------------------------------------------------------
 
-*v0.9.1*: added support for more texture formats, access to the raw texture objects 
+*v0.9.1*: added support for more texture formats, access to the raw texture objects
 
 *v0.9.0*: initial motion blur, and inital elimination of ll layer
 
@@ -336,14 +384,14 @@ v0.9.x - Elimination of LL layer, and support for motion blur
   Device will only contain device context, and all object-specific
   stuff will live in the respective api::Group, api::Geom etc
   classes. Device-specific data for a given object is handled by this
-  object itself. 
-  
+  object itself.
+
 - initial support for motion blur on triangle meshes, by specifying
   two vertex arrays
-  
+
 - initial support of motion blur on instances, by specifyign two sets
-  of transforms. 
-  
+  of transforms.
+
 - new api fct owlMotionBlurEnable() to enable support for motion blur.
 
 - groups and geoms now have methods to compute their world-space
@@ -352,10 +400,10 @@ v0.9.x - Elimination of LL layer, and support for motion blur
 
 - moved some files from .cpp to .cu; to allow calling device kernels
   for computing bboxes.
-  
+
 - initial support for optix 7.1; code will automatically detect
   version and compile to proper version where they differ.
-  
+
 - owlLaunch2D now synchronous, async version explicitly owlLaunhc2DAsync
 
 - added owlMissProgSet(context,rayType,missProg) to set miss program
@@ -379,7 +427,7 @@ v0.8.x - Revamped build system, owl viewer, interative samples, and textures
 
 - variables can now have type OWL_BUFFER (not just BUFPTR), and will
   write a owl::device::Buffer type (with size, type, and data members)
-  
+
 - device buffers can now be created over OWL_BUFFER and OWL_TEXTURE types
 
 - added int12-buffer-of-objects sample that shows/tests buffers of
@@ -397,8 +445,8 @@ v0.8.x - Revamped build system, owl viewer, interative samples, and textures
 - added basic infrastructure for textures: OWLTexture type,
   OWLTextureFormat and OWLTextureFilterMode enums, OWL_TEXTURE
   variable types, owlVariableSetTexture, owl<Type>SetTexture(),
-  etc. Textures currently only working for OWL_TEXEL_FORMAT_RGBA8, 
-  OWL_TEXEL_FORMAT_RGBA32F, OWL_TEXEL_FORMAT_R8, OWL_TEXEL_FORMAT_R32F 
+  etc. Textures currently only working for OWL_TEXEL_FORMAT_RGBA8,
+  OWL_TEXEL_FORMAT_RGBA32F, OWL_TEXEL_FORMAT_R8, OWL_TEXEL_FORMAT_R32F
   and with OWL_TEXTURE_FILTER_LINEAR.
 
 - added int10-texturedTriangles that opens a window with a
@@ -411,11 +459,11 @@ v0.8.x - Revamped build system, owl viewer, interative samples, and textures
   (OWL_INCLUDES, OWL_VIEWER_LIBRARIES, etc) now get exported to
   whoever includes, thus allowing includee to use same build flags,
   proper set of libraries an dincludes, etc.
-  
+
 - existing (glut-based) viewerWidget got replaced with glfw based
   OWLViewer class. New class has cleaner setup code, and no longer
   requires installing glut binaries for windows build
-  
+
 - build system picks up glfw where available, and otherwise builds
   glfw from source (full glfw source in samples/3rdParty)
 
@@ -423,7 +471,7 @@ v0.8.x - Revamped build system, owl viewer, interative samples, and textures
   longer app's job to do that), and does so with cuda/gl resource
   sharing using managed mem frame buffer. App still writes render() method,
   but simply writes final pixels to viewer-handles frame buffer.
-  
+
 - added first two interactive samples, using owlViewer
 
 - changed samples/advaned/optixCourse to use owlViewer - glut now
@@ -437,7 +485,7 @@ v0.7.x - Unifiction of ng and ll APIs into one single owl API
 
 - 'll' and 'ng' layers mostly merged, at least from the API layer; led
   to significant reduction in duplicate code.
-  
+
 - merged in PRs to enable TBB on windows, and to add cuda grphics resource buffer
 
 *v0.7.3*: performance "guiding"
@@ -449,7 +497,7 @@ v0.7.x - Unifiction of ng and ll APIs into one single owl API
 
 - hotfix for bug introduced when auto-freeing of device memory, which
   accidentally freed instance BVH whiel still in use.
-  
+
 - various windows fixes; in particular removing tbb by default (windows only)
 
 *v0.7.2*: various feature extensions and bug fixes
@@ -473,7 +521,7 @@ v0.7.x - Unifiction of ng and ll APIs into one single owl API
 
 *v0.7.1*: bugfix release.
 
-- added variable plumbing for missing unsigned and 64-bit types 
+- added variable plumbing for missing unsigned and 64-bit types
 
 - fixed race condition in creating/using api handles that caused
   random crashes when setting launch params from different threads
@@ -488,7 +536,7 @@ v0.7.x - Unifiction of ng and ll APIs into one single owl API
 
 - eliminated compaction in user geom and instance groups (doesn't
   help, anyway, and now have lower peak memory)
-  
+
 - camke now defines (and all samples etc use) cmake variables for
   `OWL_INCLUDES` and `OWL_LIBRARIES`
 
@@ -520,7 +568,7 @@ v0.6.x - Buffer updates, launch params, first interactive example, ...
 - Added OWL-port of github.com/ingowald/optix7course siggraph course
   notes sample as a first 'advanced' sample that allows for
   interactive fly-throughs trhough a "real" model. See original course
-  notes for instructions on how to use. 
+  notes for instructions on how to use.
 
 Process of adding this sample also required, among others, the following
 feature changes/additions
@@ -539,7 +587,7 @@ feature changes/additions
   project allow, for example, highly threaded cpu-side shading with
   owl-based, async GPU offload of the ray tracing (this project is not
   yet included).
-  
+
 - worked on better interoperability between owl and CUDA-based host
   app; app can query buffer device pointers, add can add raw data (eg,
   cuda textures) to objects, app can query streams used for async
@@ -552,7 +600,7 @@ feature changes/additions
 
 - rewritten interface for getting and setting variables using macros,
   all object and variable types now supported
-  
+
 - added support for more than one ray type (`owlContextSetRayTypeCount`)
 
 - clamped down on verbosity of the logging - most logs now visible
@@ -569,7 +617,7 @@ v0.5.x - First Public Release Cleanups
 - various changes to cmake scripts, library names, and in partciualr
   owl/common/viewerWidget to remove roadblocks for windows apps using
   that infrastructure
-  
+
 - first external windows sandbox app (particle viewer) using owl/ng
   and owl/viewerWidget
 
@@ -591,7 +639,7 @@ v0.5.x - First Public Release Cleanups
 
 - significant renames and cleanups of owl/common (in particular, all
   'gdt::' and 'gdt/' merged into owl::common and owl/common)
-  
+
 - cleaned up owl/common/viewerWidget. Not used in owl itself (to avoid
   dependencies to glut etc), but now working successfully in first
   external test project
@@ -610,7 +658,7 @@ v0.5.x - First Public Release Cleanups
 
 - first publicly accessible project on
   http://github.com/owl-project/owl
-  
+
 - major cleanups: "inlined" al the gdt submodule sources into
   owl/common to make owl external-dependency-fee. Feplaced gdt::
   namespace with owl::common:: to match.
@@ -627,7 +675,7 @@ v0.4.x - Instances
 
 - added `ll08-sierpinski` example that allows for testing user-supplied number
   of instance levels with a sierpinski pyramid (Thx Nate!)
-  
+
 *v0.4.3*: new api fcts to set transforms and children for instance groups
 
 - added `instanceGroupSetChild` and `instanceGroupSetTransform`
@@ -635,20 +683,20 @@ v0.4.x - Instances
 
 *v0.4.2*: bugfix - all samples working in multi-device again
 
-*v0.4.1*: example `ll06-rtow-mixedGeometries.png` 
+*v0.4.1*: example `ll06-rtow-mixedGeometries.png`
  working w/ manual sucessive traced into two different accels
 
 *v0.4.0*: new way of building SBT now based on groups
 
 - api change: allocated geom groups now have their program size
-  set in geomTypeCreate(), miss and raygen programs have it set in 
+  set in geomTypeCreate(), miss and raygen programs have it set in
   type rather than in sbt{raygen/miss}build (ie, program size now
   for all types set exactly once in type, then max size computed during
   sbt built)
-  
+
 - can handle more than one group; for non-0 group has to query
   geomGroupGetSbtOffset() and pass that value to trace
-  
+
 - new sbt structure no longer uses 'one entry per geom' (that unfortunately
   doesnt' work), but now builds sbt by iterating over all groups, and
   putting each groups' geom children in one block before putting
@@ -662,7 +710,7 @@ v0.3.x - User Geometries
 
 *v0.3.4*: first 'serious' example: RTOW-finalChapter on OWL
 
-- added `s05-rtow` example that runs Pete's "final chapter" example 
+- added `s05-rtow` example that runs Pete's "final chapter" example
   (iterative version) on top of OWL, with multi-device, different material, etc.
 
 *v0.3.3*: major bugfix in bounds program for geoms w/ more than 128 prims.
@@ -675,7 +723,7 @@ v0.3.x - User Geometries
 
 - added `groupBuildPrimitiveBounds` function that builds, for a
   user geom group, all the the primbounds required for the respective
-  user geoms and prims in that group. The input for the user geoms' 
+  user geoms and prims in that group. The input for the user geoms'
   bounding bxo functions is generated using same callback mechanism
   as sbt writing.
 

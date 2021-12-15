@@ -24,7 +24,7 @@ namespace cdf {
   };
 
   struct Renderer {
-    Renderer(std::string hdrFileName, std::string objFileName);
+    Renderer(std::string hdrFileName, std::string objFileName, std::string blueNoiseFileName);
 
     void setCamera(const vec3f &org,
                    const vec3f &dir_00,

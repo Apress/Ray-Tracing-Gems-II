@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -53,7 +53,7 @@ namespace owl {
     size_t missProgRecordSize  = 0;
     size_t missProgRecordCount = 0;
     DeviceMemory missProgRecordsBuffer;
-
+    
     DeviceMemory launchParamsBuffer;
   };
 
@@ -70,6 +70,7 @@ namespace owl {
     DeviceContext(Context *parent,
                   int owlID,
                   int cudaID);
+    ~DeviceContext();
     
     /*! helper function - return cuda name of this device */
     std::string getDeviceName() const;
@@ -141,17 +142,17 @@ namespace owl {
   struct SetActiveGPU {
     inline SetActiveGPU(const DeviceContext::SP &device)
     {
-      CUDA_CHECK(cudaGetDevice(&savedActiveDeviceID));
-      CUDA_CHECK(cudaSetDevice(device->cudaDeviceID));
+      OWL_CUDA_CHECK(cudaGetDevice(&savedActiveDeviceID));
+      OWL_CUDA_CHECK(cudaSetDevice(device->cudaDeviceID));
     }
     inline SetActiveGPU(const DeviceContext *device)
     {
-      CUDA_CHECK(cudaGetDevice(&savedActiveDeviceID));
-      CUDA_CHECK(cudaSetDevice(device->cudaDeviceID));
+      OWL_CUDA_CHECK(cudaGetDevice(&savedActiveDeviceID));
+      OWL_CUDA_CHECK(cudaSetDevice(device->cudaDeviceID));
     }
     inline ~SetActiveGPU()
     {
-      CUDA_CHECK_NOTHROW(cudaSetDevice(savedActiveDeviceID));
+      OWL_CUDA_CHECK_NOTHROW(cudaSetDevice(savedActiveDeviceID));
     }
   private:
     int savedActiveDeviceID = -1;

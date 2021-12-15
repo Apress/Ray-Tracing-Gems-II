@@ -39,7 +39,8 @@ namespace owl {
                              const std::vector<OWLVarDecl> &varDecls)
     : SBTObjectType(context,context->missProgTypes,varStructSize,varDecls),
       module(module),
-      progName(progName)
+      progName(progName),
+      annotatedProgName("__miss__"+progName)
   {}
   
   /*! pretty-printer, for printf-debugging */

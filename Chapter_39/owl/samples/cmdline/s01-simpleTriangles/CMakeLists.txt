@@ -14,17 +14,20 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${PROJECT_SOURCE_DIR}/owl)
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-add_executable(sample01-simpleTriangles
-  hostCode.cpp
-  ${ptxCode}
-  )
+embed_ptx(
+  OUTPUT_TARGET
+    sample01-simpleTriangles-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
+
+add_executable(sample01-simpleTriangles hostCode.cpp)
 target_link_libraries(sample01-simpleTriangles
-  ${OWL_LIBRARIES}
-  )
+  PRIVATE
+    sample01-simpleTriangles-ptx
+    owl::owl
+    stb_image
+)
 add_test(sample01-simpleTriangles ${CMAKE_BINARY_DIR}/sample01-simpleTriangles)
-
-

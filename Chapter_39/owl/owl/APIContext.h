@@ -30,6 +30,9 @@ namespace owl {
                 numRequestedDevices)
     {}
     
+    /*! pretty-printer, for printf-debugging */
+    virtual std::string toString() const override { return "owl::APIContext"; }
+
     APIHandle *createHandle(Object::SP object);
 
     void track(APIHandle *object);
@@ -39,8 +42,8 @@ namespace owl {
     /*! delete - and thereby, release - all handles that we still
       own. */
     void releaseAll();
-    std::set<APIHandle *> activeHandles;
-    
+
+    std::set<APIHandle *> activeHandles;    
     std::mutex monitor;
   };
   

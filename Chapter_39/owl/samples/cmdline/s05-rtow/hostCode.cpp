@@ -36,7 +36,7 @@
   std::cout << "#owl.sample(main): " << message << std::endl;    \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 const char *outFileName = "s05-rtow.png";
 const vec2i fbSize(1600,800);
@@ -62,18 +62,18 @@ void createScene()
 {
   lambertianSpheres.push_back({Sphere{vec3f(0.f, -1000.0f, -1.f), 1000.f},
         Lambertian{vec3f(0.5f, 0.5f, 0.5f)}});
-  
+
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
       float choose_mat = rnd();
       vec3f center(a + rnd(), 0.2f, b + rnd());
-      if (choose_mat < 0.8f) 
+      if (choose_mat < 0.8f)
         lambertianSpheres.push_back({Sphere{center, 0.2f},
               Lambertian{rnd3f()*rnd3f()}});
-      else if (choose_mat < 0.95f) 
+      else if (choose_mat < 0.95f)
         metalSpheres.push_back({Sphere{center, 0.2f},
               Metal{0.5f*(1.f+rnd3f()),0.5f*rnd()}});
-      else 
+      else
         dielectricSpheres.push_back({Sphere{center, 0.2f},
               Dielectric{1.5f}});
     }
@@ -85,7 +85,7 @@ void createScene()
   metalSpheres.push_back({Sphere{vec3f(4.f, 1.f, 0.f), 1.f},
         Metal{vec3f(0.7f, 0.6f, 0.5f), 0.0f}});
 }
-  
+
 int main(int ac, char **av)
 {
   // ##################################################################
@@ -100,14 +100,14 @@ int main(int ac, char **av)
   LOG_OK(" num lambertian spheres: " << lambertianSpheres.size());
   LOG_OK(" num dielectric spheres: " << dielectricSpheres.size());
   LOG_OK(" num metal spheres     : " << metalSpheres.size());
-  
+
   // ##################################################################
   // init owl
   // ##################################################################
 
   OWLContext context = owlContextCreate(nullptr,1);
-  OWLModule  module  = owlModuleCreate(context,ptxCode);
-  
+  OWLModule  module  = owlModuleCreate(context,deviceCode_ptx);
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -210,7 +210,7 @@ int main(int ac, char **av)
   // ##################################################################
   // set up all *ACCELS* we need to trace into those groups
   // ##################################################################
-  
+
   OWLGeom  userGeoms[] = {
     lambertianSpheresGeom,
     metalSpheresGeom,
@@ -220,7 +220,7 @@ int main(int ac, char **av)
   OWLGroup spheresGroup
     = owlUserGeomGroupCreate(context,3,userGeoms);
   owlGroupBuildAccel(spheresGroup);
-  
+
   OWLGroup world
     = owlInstanceGroupCreate(context,1,&spheresGroup);
   owlGroupBuildAccel(world);
@@ -228,9 +228,9 @@ int main(int ac, char **av)
   // ##################################################################
   // set miss and raygen programs
   // ##################################################################
-  
+
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[] = {
     { /* sentinel to mark end of list */ }
@@ -240,7 +240,7 @@ int main(int ac, char **av)
     = owlMissProgCreate(context,module,"miss",sizeof(MissProgData),
                         missProgVars,-1);
   owlMissProgSet(context,0,missProg);
-  
+
   // ........... set variables  ............................
   /* nothing to set */
 
@@ -289,7 +289,7 @@ int main(int ac, char **av)
   owlRayGenSet3f    (rayGen,"camera.llc",   (const owl3f&)lower_left_corner);
   owlRayGenSet3f    (rayGen,"camera.horiz", (const owl3f&)horizontal);
   owlRayGenSet3f    (rayGen,"camera.vert",  (const owl3f&)vertical);
-  
+
   // ##################################################################
   // build *SBT* required to trace the groups
   // ##################################################################
@@ -303,10 +303,10 @@ int main(int ac, char **av)
   // ##################################################################
   // now that everything is ready: launch it ....
   // ##################################################################
-  
+
   LOG("launching ...");
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
-  
+
   LOG("done with launch, writing picture ...");
   // for host pinned mem it doesn't matter which device we query...
   const uint32_t *fb
@@ -318,9 +318,9 @@ int main(int ac, char **av)
   // ##################################################################
   // and finally, clean up
   // ##################################################################
-  
+
   LOG("destroying devicegroup ...");
   owlContextDestroy(context);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }

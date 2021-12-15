@@ -282,7 +282,7 @@ namespace owl {
     {}
     void set(const Buffer::SP &value) override
     {
-      throw std::runtime_error("cannot _set_ a device index variable; it is purely implicit");
+      OWL_RAISE("cannot _set_ a device index variable; it is purely implicit");
     }
 
     /*! writes the device specific representation of the given type */
@@ -336,7 +336,7 @@ namespace owl {
     void set(const Group::SP &value) override
     {
       if (value && !std::dynamic_pointer_cast<InstanceGroup>(value))
-        throw std::runtime_error("OWL currently supports only instance groups to be passed to traversal; if you do want to trace rays into a single User or Triangle group, please put them into a single 'dummy' instance with jsut this one child and a identity transform");
+        OWL_RAISE("OWL currently supports only instance groups to be passed to traversal; if you do want to trace rays into a single User or Triangle group, please put them into a single 'dummy' instance with jsut this one child and a identity transform");
       this->group = value;
     }
 

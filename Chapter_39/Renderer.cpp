@@ -1,7 +1,7 @@
 #include <cfloat>
 #include <iomanip>
 #include "cdf.h"
-#include "renderer.h"
+#include "Renderer.h"
 #include "deviceCode.h"
 #include "owl/helper/cuda.h"
 
@@ -142,7 +142,7 @@ namespace cdf {
     return result;
   }
 
-  Renderer::Renderer(std::string hdrFileName, std::string objFileName)
+  Renderer::Renderer(std::string hdrFileName, std::string objFileName, std::string blueNoiseFileName)
   {
     CDF cdf(hdrFileName);
 
@@ -153,6 +153,11 @@ namespace cdf {
     rayGenBenchmark = owlRayGenCreate(owl,module,"benchmark",
                              sizeof(RayGen),rayGenVars,-1);
     lp = owlParamsCreate(owl,sizeof(LaunchParams),launchParamsVars,-1);
+
+    // ------------------------------------------------------------------
+    // Blue Noise Mask
+    // ------------------------------------------------------------------
+
 
     // ------------------------------------------------------------------
     // HDRI
@@ -245,7 +250,7 @@ namespace cdf {
           }
           mesh.geoms.push_back(geom);
         }
-      } catch (...) { std::cerr << "Cannot load..\n"; }
+      } catch (const std::exception& ex) { std::cerr << "Cannot load... " << ex.what() << "\n"; }
     }
 
 
@@ -260,10 +265,6 @@ namespace cdf {
       else {
         throw std::runtime_error("Unsupported geometry type");
       }
-    }
-
-    if (numModelGeoms > 1) {
-      throw std::runtime_error("Not supported yet: model with more than one geom");
     }
 
     cdfGroup = owlInstanceGroupCreate(owl,1);

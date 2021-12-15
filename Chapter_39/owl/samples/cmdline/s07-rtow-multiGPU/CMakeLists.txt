@@ -14,23 +14,20 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${PROJECT_SOURCE_DIR}/owl)
+embed_ptx(
+  OUTPUT_TARGET
+    sample07-rtow-multiGPU-ptx
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-
-add_executable(sample07-rtow-multiGPU
-  hostCode.cpp
-  ${ptxCode}
-  )
-
+add_executable(sample07-rtow-multiGPU hostCode.cpp)
 target_link_libraries(sample07-rtow-multiGPU
-  ${OWL_LIBRARIES}
-  )
-
-add_test(sample07-rtow-multiGPU
-  ${CMAKE_BINARY_DIR}/sample07-rtow-multiGPU)
-
-
-
+  PRIVATE
+    sample07-rtow-multiGPU-ptx
+    owl::owl
+    stb_image
+)
+add_test(sample07-rtow-multiGPU ${CMAKE_BINARY_DIR}/sample07-rtow-multiGPU)

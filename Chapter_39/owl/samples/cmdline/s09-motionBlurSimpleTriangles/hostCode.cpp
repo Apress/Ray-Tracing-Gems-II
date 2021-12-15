@@ -34,7 +34,7 @@
   std::cout << "#owl.sample(main): " << message << std::endl;   \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 const int NUM_VERTICES = 8;
 vec3f vertices0[NUM_VERTICES] =
@@ -86,8 +86,8 @@ int main(int ac, char **av)
   // create a context on the first device:
   OWLContext context = owlContextCreate(nullptr,1);
   owlEnableMotionBlur(context);
-  OWLModule module = owlModuleCreate(context,ptxCode);
-  
+  OWLModule module = owlModuleCreate(context,deviceCode_ptx);
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -132,17 +132,17 @@ int main(int ac, char **av)
     = owlGeomCreate(context,trianglesGeomType);
 
   OWLBuffer vertexBuffersOverTime[2] = { vertexBuffer0, vertexBuffer1 };
-  
+
   owlTrianglesSetMotionVertices(trianglesGeom,2,vertexBuffersOverTime,
                                 NUM_VERTICES,sizeof(vec3f),0);
   owlTrianglesSetIndices(trianglesGeom,indexBuffer,
                          NUM_INDICES,sizeof(vec3i),0);
-  
+
   owlGeomSetBuffer(trianglesGeom,"vertex0",vertexBuffer0);
   owlGeomSetBuffer(trianglesGeom,"vertex1",vertexBuffer0);
   owlGeomSetBuffer(trianglesGeom,"index",indexBuffer);
   owlGeomSet3f(trianglesGeom,"color",owl3f{0,1,0});
-  
+
   // ------------------------------------------------------------------
   // the group/accel for that mesh
   // ------------------------------------------------------------------
@@ -152,14 +152,14 @@ int main(int ac, char **av)
   OWLGroup world
     = owlInstanceGroupCreate(context,1,&trianglesGroup);
   owlGroupBuildAccel(world);
-  
+
 
   // ##################################################################
   // set miss and raygen program required for SBT
   // ##################################################################
 
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[]
     = {
@@ -171,7 +171,7 @@ int main(int ac, char **av)
   OWLMissProg missProg
     = owlMissProgCreate(context,module,"miss",sizeof(MissProgData),
                         missProgVars,-1);
-  
+
   // ----------- set variables  ----------------------------
   owlMissProgSet3f(missProg,"color0",owl3f{.8f,0.f,0.f});
   owlMissProgSet3f(missProg,"color1",owl3f{.8f,.8f,.8f});
@@ -216,11 +216,11 @@ int main(int ac, char **av)
   owlRayGenSet3f    (rayGen,"camera.dir_00",(const owl3f&)camera_d00);
   owlRayGenSet3f    (rayGen,"camera.dir_du",(const owl3f&)camera_ddu);
   owlRayGenSet3f    (rayGen,"camera.dir_dv",(const owl3f&)camera_ddv);
-  
+
   // ##################################################################
   // build *SBT* required to trace the groups
   // ##################################################################
-  
+
   owlBuildPrograms(context);
   owlBuildPipeline(context);
   owlBuildSBT(context);
@@ -228,10 +228,10 @@ int main(int ac, char **av)
   // ##################################################################
   // now that everything is ready: launch it ....
   // ##################################################################
-  
+
   LOG("launching ...");
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
-  
+
   LOG("done with launch, writing picture ...");
   // for host pinned mem it doesn't matter which device we query...
   const uint32_t *fb
@@ -244,9 +244,9 @@ int main(int ac, char **av)
   // ##################################################################
   // and finally, clean up
   // ##################################################################
-  
+
   LOG("destroying devicegroup ...");
   owlContextDestroy(context);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }

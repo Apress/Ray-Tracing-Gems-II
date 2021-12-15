@@ -134,15 +134,18 @@ namespace owl {
     inline __device__ RayT(const vec3f &origin,
                           const vec3f &direction,
                           float tmin,
-                          float tmax)
+                          float tmax,
+                          OptixVisibilityMask visibilityMask=(OptixVisibilityMask)(-1))
       : origin(origin),
         direction(direction),
         tmin(tmin),
-        tmax(tmax)
+        tmax(tmax),
+        visibilityMask(visibilityMask)
     {}
     
     vec3f origin, direction;
     float tmin=0.f,tmax=1e30f,time=0.f;
+    OptixVisibilityMask visibilityMask=(OptixVisibilityMask)-1;
   };
   typedef RayT<0,1> Ray;
 
@@ -164,7 +167,7 @@ namespace owl {
                ray.tmin,
                ray.tmax,
                ray.time,
-               (OptixVisibilityMask)-1,
+               ray.visibilityMask,
                /*rayFlags     */rayFlags,
                /*SBToffset    */ray.rayType,
                /*SBTstride    */ray.numRayTypes,
@@ -191,7 +194,7 @@ namespace owl {
                ray.tmin,
                ray.tmax,
                ray.time,
-               (OptixVisibilityMask)-1,
+               ray.visibilityMask,
                /*rayFlags     */0u,
                /*SBToffset    */ray.rayType + numRayTypes*sbtOffset,
                /*SBTstride    */numRayTypes,
@@ -222,10 +225,9 @@ namespace owl {
   extern "C" __global__ \
   void __miss__##programName
 
-
-
 /* defines the wrapper stuff to actually launch all the bounds
    programs from the host - todo: move to deviceAPI.h once working */
+#ifndef OPTIX_BOUNDS_PROGRAM
 #define OPTIX_BOUNDS_PROGRAM(progName)                                  \
   /* fwd decl for the kernel func to call */                            \
   inline __device__                                                     \
@@ -254,5 +256,5 @@ namespace owl {
   /* now the actual device code that the user is writing: */            \
   inline __device__ void __boundsFunc__##progName                       \
   /* program args and body supplied by user ... */
-  
+#endif
   

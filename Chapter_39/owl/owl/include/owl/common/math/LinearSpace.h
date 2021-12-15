@@ -110,7 +110,7 @@ namespace owl {
         LinearSpace2 m = *this;
 
         // mirrored?
-        scalar_t mirror(OneTy());
+        scalar_t mirror{scalar_t(OneTy())};
         if (m.det() < scalar_t(ZeroTy())) {
           m.vx = -m.vx;
           mirror = -mirror;

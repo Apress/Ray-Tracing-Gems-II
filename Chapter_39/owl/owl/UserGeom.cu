@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019-2020 Ingo Wald                                            //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -121,10 +121,10 @@ namespace owl {
       (((box3f*)d_bounds.get())+0,
        (box3f *)dd.internalBufferForBoundsProgram.get(),
        primCount);
-    CUDA_SYNC_CHECK();
+    OWL_CUDA_SYNC_CHECK();
     d_bounds.download(&bounds[0]);
     d_bounds.free();
-    CUDA_SYNC_CHECK();
+    OWL_CUDA_SYNC_CHECK();
     bounds[1] = bounds[0];
   }
 
@@ -172,6 +172,10 @@ namespace owl {
   void UserGeom::executeBoundsProgOnPrimitives(const DeviceContext::SP &device)
   {
     SetActiveGPU activeGPU(device);
+    // if geom does't contain any prims we would run into issue
+    // launching zero-sized bounds prog kernel below, so let's just
+    // exit here.
+    if (primCount == 0) return;
       
     std::vector<uint8_t> userGeomData(geomType->varStructSize);
     
@@ -179,7 +183,8 @@ namespace owl {
     tempMem.alloc(geomType->varStructSize);
     
     DeviceData &dd = getDD(device);
-    dd.internalBufferForBoundsProgram.allocManaged(primCount*sizeof(box3f));
+    dd.internalBufferForBoundsProgram.alloc(primCount*sizeof(box3f));
+    // dd.internalBufferForBoundsProgram.allocManaged(primCount*sizeof(box3f));
 
     writeVariables(userGeomData.data(),device);
         
@@ -211,9 +216,9 @@ namespace owl {
     CUstream stream = device->stream;
     UserGeomType::DeviceData &typeDD = getTypeDD(device);
     if (!typeDD.boundsFuncKernel)
-      throw std::runtime_error("bounds kernel set, but not yet compiled - "
-                               "did you forget to call BuildPrograms() before"
-                               " (User)GroupAccelBuild()!?");
+      OWL_RAISE("bounds kernel set, but not yet compiled - "
+                "did you forget to call BuildPrograms() before"
+                " (User)GroupAccelBuild()!?");
         
     CUresult rc
       = cuLaunchKernel(typeDD.boundsFuncKernel,
@@ -223,8 +228,8 @@ namespace owl {
     if (rc) {
       const char *errName = 0;
       cuGetErrorName(rc,&errName);
-      throw std::runtime_error("unknown CUDA error in calling bounds function kernel: "
-                               +std::string(errName));
+      OWL_RAISE("unknown CUDA error in calling bounds function kernel: "
+                +std::string(errName));
     }
     
     tempMem.free();
@@ -280,14 +285,14 @@ namespace owl {
         LOG_OK("found bounds function " << annotatedProgName << " ... perfect!");
         break;
       case CUDA_ERROR_NOT_FOUND:
-        throw std::runtime_error("in "+std::string(__PRETTY_FUNCTION__)
-                                 +": could not find OPTIX_BOUNDS_PROGRAM("
-                                 +boundsProg.progName+")");
+        OWL_RAISE("in "+std::string(__PRETTY_FUNCTION__)
+                  +": could not find OPTIX_BOUNDS_PROGRAM("
+                  +boundsProg.progName+")");
       default:
         const char *errName = 0;
         cuGetErrorName(rc,&errName);
-        throw std::runtime_error("unknown CUDA error when building bounds program kernel"
-                                 +std::string(errName));
+        OWL_RAISE("unknown CUDA error when building bounds program kernel"
+                  +std::string(errName));
       }
     }
   }

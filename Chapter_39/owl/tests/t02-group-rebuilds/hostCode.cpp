@@ -37,7 +37,7 @@
   std::cout << "#owl.sample(main): " << message << std::endl;    \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
 const char *outFileName = "t02-group-rebuilds.png";
 const vec2i fbSize(600,300);
@@ -125,7 +125,7 @@ void addRandomBox(BoxArray &boxes,
   xfm = owl::affine3f(owl::linear3f::rotate(U,rnd())) * xfm;
   xfm = owl::affine3f(owl::linear3f::scale(.7f*size)) * xfm;
   xfm = owl::affine3f(owl::affine3f::translate(center)) * xfm;
-  
+
   const int startIndex = (int)boxes.vertices.size();
   for (int i=0;i<NUM_VERTICES;i++)
     boxes.vertices.push_back(owl::xfmPoint(xfm,unitBoxVertices[i]));
@@ -138,7 +138,7 @@ void createScene()
 {
   lambertianSpheres.push_back({Sphere{vec3f(0.f, -1000.0f, -1.f), 1000.f},
         Lambertian{vec3f(0.5f, 0.5f, 0.5f)}});
-  
+
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
       float choose_mat = rnd();
@@ -175,7 +175,7 @@ void createScene()
   metalSpheres.push_back({Sphere{vec3f(4.f, 1.f, 0.f), 1.f},
         Metal{vec3f(0.7f, 0.6f, 0.5f), 0.0f}});
 }
-  
+
 int main(int ac, char **av)
 {
   int Nrebuilds = 1000;
@@ -188,21 +188,21 @@ int main(int ac, char **av)
   if (ac == 2)
     Nrebuilds = atoi(av[1]);
   LOG("going to run with " << Nrebuilds << " rebuilds");
-  
+
   LOG("creating the scene ...");
   createScene();
   LOG_OK("created scene:");
   LOG_OK(" num lambertian spheres: " << lambertianSpheres.size());
   LOG_OK(" num dielectric spheres: " << dielectricSpheres.size());
   LOG_OK(" num metal spheres     : " << metalSpheres.size());
-  
+
   // ##################################################################
   // init owl
   // ##################################################################
 
   OWLContext context = owlContextCreate(nullptr,1);
-  OWLModule  module  = owlModuleCreate(context,ptxCode);
-  
+  OWLModule  module  = owlModuleCreate(context,deviceCode_ptx);
+
   // ##################################################################
   // set up all the *GEOMETRY* graph we want to render
   // ##################################################################
@@ -316,9 +316,9 @@ int main(int ac, char **av)
   // ##################################################################
   // set miss and raygen programs
   // ##################################################################
-  
+
   // -------------------------------------------------------
-  // set up miss prog 
+  // set up miss prog
   // -------------------------------------------------------
   OWLVarDecl missProgVars[] = {
     { /* sentinel to mark end of list */ }
@@ -368,7 +368,7 @@ int main(int ac, char **av)
 
 
 
-  
+
 
 
 
@@ -379,7 +379,7 @@ int main(int ac, char **av)
   LOG("building geometries ...");
 
   // ====================== SPHERES ======================
-  
+
   // ----------- metal -----------
   OWLBuffer metalSpheresBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(metalSpheres[0]),
@@ -412,7 +412,7 @@ int main(int ac, char **av)
 
 
   // ====================== BOXES ======================
-  
+
   // ----------- metal -----------
   OWLBuffer metalMaterialsBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(metalBoxes.materials[0]),
@@ -437,7 +437,7 @@ int main(int ac, char **av)
   owlGeomSetBuffer(metalBoxesGeom,"perBoxMaterial",metalMaterialsBuffer);
   owlGeomSetBuffer(metalBoxesGeom,"vertex",metalVerticesBuffer);
   owlGeomSetBuffer(metalBoxesGeom,"index",metalIndicesBuffer);
-  
+
   // ----------- lambertian -----------
   OWLBuffer lambertianMaterialsBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(lambertianBoxes.materials[0]),
@@ -462,7 +462,7 @@ int main(int ac, char **av)
   owlGeomSetBuffer(lambertianBoxesGeom,"perBoxMaterial",lambertianMaterialsBuffer);
   owlGeomSetBuffer(lambertianBoxesGeom,"vertex",lambertianVerticesBuffer);
   owlGeomSetBuffer(lambertianBoxesGeom,"index",lambertianIndicesBuffer);
-  
+
   // ----------- dielectric -----------
   OWLBuffer dielectricMaterialsBuffer
     = owlDeviceBufferCreate(context,OWL_USER_TYPE(dielectricBoxes.materials[0]),
@@ -487,7 +487,7 @@ int main(int ac, char **av)
   owlGeomSetBuffer(dielectricBoxesGeom,"perBoxMaterial",dielectricMaterialsBuffer);
   owlGeomSetBuffer(dielectricBoxesGeom,"vertex",dielectricVerticesBuffer);
   owlGeomSetBuffer(dielectricBoxesGeom,"index",dielectricIndicesBuffer);
-  
+
 
 
   // ##################################################################
@@ -556,7 +556,7 @@ int main(int ac, char **av)
   owlRayGenSet3f    (rayGen,"camera.llc",   (const owl3f&)lower_left_corner);
   owlRayGenSet3f    (rayGen,"camera.horiz", (const owl3f&)horizontal);
   owlRayGenSet3f    (rayGen,"camera.vert",  (const owl3f&)vertical);
-  
+
   owlBuildSBT(context);
 
   // ##################################################################
@@ -582,7 +582,7 @@ int main(int ac, char **av)
     owlBuildSBT(context);
   LOG("final launch ...");
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
-  
+
   LOG("done with launch, writing picture ...");
   // for host pinned mem it doesn't matter which device we query...
   const uint32_t *fb
@@ -594,9 +594,9 @@ int main(int ac, char **av)
   // ##################################################################
   // and finally, clean up
   // ##################################################################
-  
+
   LOG("destroying devicegroup ...");
   owlContextDestroy(context);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }

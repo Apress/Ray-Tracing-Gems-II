@@ -25,6 +25,8 @@
 #include <cuda_gl_interop.h>
 #include "Camera.h"
 
+#include <functional>
+
 namespace owl {
   namespace viewer {
 
@@ -207,6 +209,7 @@ namespace owl {
       void updateCamera();
 
       void showAndRun();
+      void showAndRun(std::function<bool()> cb); // version that stops when cb() returns false
       
       void mouseButton(int button, int action, int mods);
       

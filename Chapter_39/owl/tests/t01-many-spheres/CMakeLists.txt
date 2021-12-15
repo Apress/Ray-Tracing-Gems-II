@@ -14,19 +14,21 @@
 # limitations under the License.                                           #
 # ======================================================================== #
 
-include_directories(${PROJECT_SOURCE_DIR}/owl)
+embed_ptx(
+  OUTPUT_TARGET
+    test01-manySpheres-ptx
+  EMBEDDED_SYMBOL_NAMES
+    ptxCode
+  PTX_LINK_LIBRARIES
+    owl::owl
+  SOURCES
+    deviceCode.cu
+)
 
-cuda_compile_and_embed(ptxCode
-  deviceCode.cu
-  )
-
-add_executable(test01-manySpheres
-  hostCode.cpp
-  ${ptxCode}
-  )
-
+add_executable(test01-manySpheres hostCode.cpp)
 target_link_libraries(test01-manySpheres
-  ${OWL_LIBRARIES}
-  )
-
-
+  PRIVATE
+    test01-manySpheres-ptx
+    owl::owl
+    stb_image
+)

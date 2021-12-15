@@ -52,6 +52,7 @@ namespace owl {
 
       /*! constructor, which allocs all the device-side data */
       DeviceData(const DeviceContext::SP &device, size_t  dataSize);
+      ~DeviceData();
       
       const size_t            dataSize;
       
@@ -74,6 +75,7 @@ namespace owl {
     /*! create a new instenace of given launch param type */
     LaunchParams(Context *const context,
                  LaunchParamsType::SP type);
+    /*! create a new instenace of given launch param type */
     
     /*! pretty-printer, for printf-debugging */
     std::string toString() const override;

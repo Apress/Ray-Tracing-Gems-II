@@ -125,7 +125,7 @@ bool scatter(const Lambertian &lambertian,
   const vec3f target
     = P + (N + randomPointInUnitSphere(prd.random));
 
-  
+
   // return scattering event
   prd.out.scattered_origin    = P;
   prd.out.scattered_direction = (target-P);

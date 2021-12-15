@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2019 Ingo Wald                                                 //
+// Copyright 2019-2021 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -61,6 +61,8 @@ namespace owl {
     
     /*! name of the program within this module */
     const std::string progName;
+    /*! the name, annotated wiht optix' "__raygen__" */
+    const std::string annotatedProgName;
   };
   
   /*! an actual instance of a raygen program - defined by its type and
@@ -95,12 +97,19 @@ namespace owl {
 
     /*! execute a *synchronous* launch of this raygen program, of
       given dimensions - this will wait for the program to complete */
-    void launch(const vec2i &dims);
+    void launch(const vec3i &dims);
 
     /*! *launch* this raygen prog with given launch params, but do NOT
          wait for completion - this means the SBT shuld NOT be changed
          or rebuild until a launchParams->sync() has been done */
-    void launchAsync(const vec2i &dims, const LaunchParams::SP &launchParams);
+    void launchAsync(const vec3i &dims, const LaunchParams::SP &launchParams);
+
+    /*! *launch* this raygen prog with given launch params, but only for the 
+         given device, and do NOT wait for completion. Launches can be done
+         on a device by device basis for dynamic load balancing. */
+    void launchAsyncOnDevice(const vec3i &dims,
+                             uint32_t deviceID,
+                             const LaunchParams::SP &launchParams);
     
     /*! write the given SBT record, using the given device's
         corresponding device-side data represenataion */

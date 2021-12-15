@@ -35,9 +35,9 @@
   std::cout << "#owl.sample(main): " << message << std::endl;    \
   std::cout << OWL_TERMINAL_DEFAULT;
 
-extern "C" char ptxCode[];
+extern "C" char deviceCode_ptx[];
 
-std::vector<vec3f> vertices = 
+std::vector<vec3f> vertices =
   {
     { -0.5f,-0.5f,-0.5f },
     { +0.5f,-0.5f,-0.5f },
@@ -46,7 +46,7 @@ std::vector<vec3f> vertices =
     { 0.0f,0.0f,+0.5f },
   };
 
-std::vector<vec3i> indices = 
+std::vector<vec3i> indices =
   {
     { 0,1,3 }, { 1,2,3 },
     { 0,4,1 }, { 0,3,4 },
@@ -82,15 +82,14 @@ int main(int ac, char **av)
   // ##################################################################
   // set up all the *CODE* we want to run
   // ##################################################################
-  
+
   OWLContext owl
     = owlContextCreate(nullptr,1);
-  PING; PRINT(numLevels);
   owlSetMaxInstancingDepth(owl,numLevels);
-  
+
   OWLModule module
-    = owlModuleCreate(owl,ptxCode);
-  
+    = owlModuleCreate(owl,deviceCode_ptx);
+
   // ------------------------------------------------------------------
   OWLVarDecl lambertianMeshTypeVars[]
     = {
@@ -105,7 +104,7 @@ int main(int ac, char **av)
                         lambertianMeshTypeVars,-1);
   owlGeomTypeSetClosestHit(lambertianMeshType,0,
                            module,"PyramidMesh");
-  
+
   // ------------------------------------------------------------------
   OWLVarDecl rayGenVars[]
     = {
@@ -136,12 +135,12 @@ int main(int ac, char **av)
     = owlMissProgCreate(owl,module,"miss",
                         sizeof(MissProgData),missVars,-1);
   owlMissProgSet(owl,0,miss);
-  
-  
+
+
   // ------------------------------------------------------------------
   owlBuildPrograms(owl);
   owlBuildPipeline(owl);
-  
+
   // ##################################################################
   // set up all the *GEOMS* we want to run that code on
   // ##################################################################
@@ -162,11 +161,11 @@ int main(int ac, char **av)
     = owlDeviceBufferCreate(owl,OWL_FLOAT3,
                             vertices.size(),vertices.data());
   OWLBuffer indexBuffer
-    = owlDeviceBufferCreate(owl,OWL_FLOAT3,
+    = owlDeviceBufferCreate(owl,OWL_INT3,
                             indices.size(),indices.data());
   OWLBuffer frameBuffer
     = owlHostPinnedBufferCreate(owl,OWL_UINT,fbSize.x*fbSize.y);
-  
+
   // ------------------------------------------------------------------
   // create actual geometry
   // ------------------------------------------------------------------
@@ -198,7 +197,7 @@ int main(int ac, char **av)
          * owl::affine3f::translate(owl::vec3f(-.5f, +.5f, -.5f)),
          owl::affine3f::scale(owl::vec3f(.5f,.5f,.5f))
          * owl::affine3f::translate(owl::vec3f(+.5f, +.5f, -.5f)),
-         owl::affine3f::scale(owl::vec3f(.5f,.5f,.5f))    
+         owl::affine3f::scale(owl::vec3f(.5f,.5f,.5f))
          * owl::affine3f::translate(owl::vec3f(0.0f, 0.0, +.5f))
     };
     OWLGroup group
@@ -212,7 +211,7 @@ int main(int ac, char **av)
     owlGroupBuildAccel(group);
     world = group;
   }
-  
+
   owlRayGenSetGroup(rayGen,"world",world);
   owlRayGenSetBuffer(rayGen,"fbPtr",frameBuffer);
   owlRayGenSet2i(rayGen,"fbSize",fbSize.x,fbSize.y);
@@ -238,33 +237,33 @@ int main(int ac, char **av)
   owlRayGenSet3f(rayGen,"camera.lower_left_corner", (const owl3f&)lower_left_corner);
   owlRayGenSet3f(rayGen,"camera.horizontal", (const owl3f&)horizontal);
   owlRayGenSet3f(rayGen,"camera.vertical", (const owl3f&)vertical);
-  
+
   // ------------------------------------------------------------------
   // build shader binding table required to trace the groups
   // ------------------------------------------------------------------
   LOG("building SBT ...");
   owlBuildSBT(owl);
   LOG_OK("everything set up ...");
-  
+
   // ##################################################################
   // now that everything is ready: launch it ....
   // ##################################################################
-  
+
   owlRayGenLaunch2D(rayGen,fbSize.x,fbSize.y);
   LOG("done with launch, writing picture ...");
-  
+
   // for host pinned mem it doesn't matter which device we query:
   const uint32_t *fb = (const uint32_t*)owlBufferGetPointer(frameBuffer,0);
   stbi_write_png(outFileName,fbSize.x,fbSize.y,4,
                  fb,fbSize.x*sizeof(uint32_t));
   LOG_OK("written rendered frame buffer to file "<<outFileName);
-  
+
   // ##################################################################
   // and finally, clean up
   // ##################################################################
-  
+
   LOG("destroying devicegroup ...");
   owlContextDestroy(owl);
-  
+
   LOG_OK("seems all went OK; app is done, this should be the last output ...");
 }
